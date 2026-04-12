@@ -9,6 +9,7 @@ charset-normalizer==3.4.6
 click==8.3.1
 cryptography==46.0.6
 et_xmlfile==2.0.0
+google-generativeai
 gitdb==4.0.12
 GitPython==3.1.46
 great_expectations==1.15.1
