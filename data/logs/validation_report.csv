@@ -1,0 +1,12 @@
+rule_id,rule_name,severity,column,passed,failed,total,pass_rate,status
+V01,investment_id not null,HARD,investment_id,5170,0,5170,100.0,PASS
+V03,company in valid set,HARD,company,5170,0,5170,100.0,PASS
+V04,region in valid set,HARD,region,5170,0,5170,100.0,PASS
+V05,investment_category in valid set,HARD,investment_category,5161,9,5170,99.83,HARD FAIL
+V06,source_of_funding in valid set,HARD,source_of_funding,5170,0,5170,100.0,PASS
+V07,budget_fy_2526 >= 0,SOFT,budget_fy_2526,5170,0,5170,100.0,PASS
+V08,total_5y_k_eur >= 0,SOFT,total_5y_k_eur,5170,0,5170,100.0,PASS
+V09,tangible_intangible in valid set,SOFT,tangible_intangible,5001,169,5170,96.73,SOFT FAIL
+V10,productive_non_productive in valid set,SOFT,productive_non_productive,5161,9,5170,99.83,SOFT FAIL
+V11,mpp_value_level in valid set,SOFT,mpp_value_level,5170,0,5170,100.0,PASS
+V12,investment_description not null,SOFT,investment_description,5170,0,5170,100.0,PASS

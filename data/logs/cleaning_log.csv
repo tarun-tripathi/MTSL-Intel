@@ -1,0 +1,386 @@
+timestamp,rule,column,investment_id,before,after,note
+2026-04-12T17:27:32.804475,R4_value_fix,source_of_funding,870032,own,Own,standardise to 'Own'
+2026-04-12T17:27:32.804493,R4_value_fix,source_of_funding,415001,own,Own,standardise to 'Own'
+2026-04-12T17:27:32.804500,R4_value_fix,source_of_funding,124009,own,Own,standardise to 'Own'
+2026-04-12T17:27:32.804506,R4_value_fix,source_of_funding,124018,own,Own,standardise to 'Own'
+2026-04-12T17:27:32.804511,R4_value_fix,source_of_funding,101027,own,Own,standardise to 'Own'
+2026-04-12T17:27:32.804516,R4_value_fix,source_of_funding,111031,own,Own,standardise to 'Own'
+2026-04-12T17:27:32.804520,R4_value_fix,source_of_funding,111051,own,Own,standardise to 'Own'
+2026-04-12T17:27:32.804525,R4_value_fix,source_of_funding,101072,own,Own,standardise to 'Own'
+2026-04-12T17:27:32.804529,R4_value_fix,source_of_funding,105008,own,Own,standardise to 'Own'
+2026-04-12T17:27:32.804533,R4_value_fix,source_of_funding,105013,own,Own,standardise to 'Own'
+2026-04-12T17:27:32.804538,R4_value_fix,source_of_funding,408558,own,Own,standardise to 'Own'
+2026-04-12T17:27:32.804543,R4_value_fix,source_of_funding,103034,own,Own,standardise to 'Own'
+2026-04-12T17:27:32.804547,R4_value_fix,source_of_funding,103035,own,Own,standardise to 'Own'
+2026-04-12T17:27:32.804552,R4_value_fix,source_of_funding,101048,own,Own,standardise to 'Own'
+2026-04-12T17:27:32.804556,R4_value_fix,source_of_funding,408530,own,Own,standardise to 'Own'
+2026-04-12T17:27:32.804560,R4_value_fix,source_of_funding,428065,own,Own,standardise to 'Own'
+2026-04-12T17:27:32.804564,R4_value_fix,source_of_funding,428066,own,Own,standardise to 'Own'
+2026-04-12T17:27:32.804569,R4_value_fix,source_of_funding,105027,own,Own,standardise to 'Own'
+2026-04-12T17:27:32.804573,R4_value_fix,source_of_funding,408452,own,Own,standardise to 'Own'
+2026-04-12T17:27:32.804577,R4_value_fix,source_of_funding,408402,own,Own,standardise to 'Own'
+2026-04-12T17:27:32.804581,R4_value_fix,source_of_funding,4,own,Own,standardise to 'Own'
+2026-04-12T17:27:32.809992,R3_placeholder_clear,investment_category,1,please select !,Unknown,placeholder value cleared
+2026-04-12T17:27:32.810007,R3_placeholder_clear,investment_category,2,please select !,Unknown,placeholder value cleared
+2026-04-12T17:27:32.810016,R3_placeholder_clear,investment_category,13,please select !,Unknown,placeholder value cleared
+2026-04-12T17:27:32.810024,R3_placeholder_clear,investment_category,35,please select !,Unknown,placeholder value cleared
+2026-04-12T17:27:32.810031,R3_placeholder_clear,investment_category,36,please select !,Unknown,placeholder value cleared
+2026-04-12T17:27:32.810039,R3_placeholder_clear,investment_category,37,please select !,Unknown,placeholder value cleared
+2026-04-12T17:27:32.810046,R3_placeholder_clear,investment_category,40,please select !,Unknown,placeholder value cleared
+2026-04-12T17:27:32.810053,R3_placeholder_clear,investment_category,43,please select !,Unknown,placeholder value cleared
+2026-04-12T17:27:32.810060,R3_placeholder_clear,investment_category,47,please select !,Unknown,placeholder value cleared
+2026-04-12T17:27:32.810067,R3_placeholder_clear,investment_category,48,please select !,Unknown,placeholder value cleared
+2026-04-12T17:27:32.810073,R3_placeholder_clear,investment_category,49,please select !,Unknown,placeholder value cleared
+2026-04-12T17:27:32.810080,R3_placeholder_clear,investment_category,52,please select !,Unknown,placeholder value cleared
+2026-04-12T17:27:32.810087,R3_placeholder_clear,investment_category,57,please select !,Unknown,placeholder value cleared
+2026-04-12T17:27:32.810094,R3_placeholder_clear,investment_category,61,please select !,Unknown,placeholder value cleared
+2026-04-12T17:27:32.810101,R3_placeholder_clear,investment_category,62,please select !,Unknown,placeholder value cleared
+2026-04-12T17:27:32.810108,R3_placeholder_clear,investment_category,63,please select !,Unknown,placeholder value cleared
+2026-04-12T17:27:32.810114,R3_placeholder_clear,investment_category,69,please select !,Unknown,placeholder value cleared
+2026-04-12T17:27:32.810121,R3_placeholder_clear,investment_category,73,please select !,Unknown,placeholder value cleared
+2026-04-12T17:27:32.810129,R3_placeholder_clear,investment_category,78,please select !,Unknown,placeholder value cleared
+2026-04-12T17:27:32.810135,R3_placeholder_clear,investment_category,79,please select !,Unknown,placeholder value cleared
+2026-04-12T17:27:32.810142,R3_placeholder_clear,investment_category,80,please select !,Unknown,placeholder value cleared
+2026-04-12T17:27:32.810149,R3_placeholder_clear,investment_category,81,please select !,Unknown,placeholder value cleared
+2026-04-12T17:27:32.810156,R3_placeholder_clear,investment_category,82,please select !,Unknown,placeholder value cleared
+2026-04-12T17:27:32.810163,R3_placeholder_clear,investment_category,84,please select !,Unknown,placeholder value cleared
+2026-04-12T17:27:32.810169,R3_placeholder_clear,investment_category,86,please select !,Unknown,placeholder value cleared
+2026-04-12T17:27:32.810176,R3_placeholder_clear,investment_category,88,please select !,Unknown,placeholder value cleared
+2026-04-12T17:27:32.810183,R3_placeholder_clear,investment_category,89,please select !,Unknown,placeholder value cleared
+2026-04-12T17:27:32.810189,R3_placeholder_clear,investment_category,90,please select !,Unknown,placeholder value cleared
+2026-04-12T17:27:32.810196,R3_placeholder_clear,investment_category,92,please select !,Unknown,placeholder value cleared
+2026-04-12T17:27:32.810203,R3_placeholder_clear,investment_category,95,please select !,Unknown,placeholder value cleared
+2026-04-12T17:27:32.810209,R3_placeholder_clear,investment_category,98,please select !,Unknown,placeholder value cleared
+2026-04-12T17:27:32.810216,R3_placeholder_clear,investment_category,112,please select !,Unknown,placeholder value cleared
+2026-04-12T17:27:32.810223,R3_placeholder_clear,investment_category,113,please select !,Unknown,placeholder value cleared
+2026-04-12T17:27:32.810230,R3_placeholder_clear,investment_category,116,please select !,Unknown,placeholder value cleared
+2026-04-12T17:27:32.810236,R3_placeholder_clear,investment_category,119,please select !,Unknown,placeholder value cleared
+2026-04-12T17:27:32.810243,R3_placeholder_clear,investment_category,122,please select !,Unknown,placeholder value cleared
+2026-04-12T17:27:32.810250,R3_placeholder_clear,investment_category,123,please select !,Unknown,placeholder value cleared
+2026-04-12T17:27:32.810257,R3_placeholder_clear,investment_category,124,please select !,Unknown,placeholder value cleared
+2026-04-12T17:27:32.810263,R3_placeholder_clear,investment_category,125,please select !,Unknown,placeholder value cleared
+2026-04-12T17:27:32.810270,R3_placeholder_clear,investment_category,126,please select !,Unknown,placeholder value cleared
+2026-04-12T17:27:32.810276,R3_placeholder_clear,investment_category,127,please select !,Unknown,placeholder value cleared
+2026-04-12T17:27:32.810283,R3_placeholder_clear,investment_category,130,please select !,Unknown,placeholder value cleared
+2026-04-12T17:27:32.810290,R3_placeholder_clear,investment_category,131,please select !,Unknown,placeholder value cleared
+2026-04-12T17:27:32.810296,R3_placeholder_clear,investment_category,134,please select !,Unknown,placeholder value cleared
+2026-04-12T17:27:32.810303,R3_placeholder_clear,investment_category,137,please select !,Unknown,placeholder value cleared
+2026-04-12T17:27:32.810310,R3_placeholder_clear,investment_category,140,please select !,Unknown,placeholder value cleared
+2026-04-12T17:27:32.810317,R3_placeholder_clear,investment_category,408171,please select !,Unknown,placeholder value cleared
+2026-04-12T17:27:32.810323,R3_placeholder_clear,investment_category,408172,please select !,Unknown,placeholder value cleared
+2026-04-12T17:27:32.810330,R3_placeholder_clear,investment_category,408173,please select !,Unknown,placeholder value cleared
+2026-04-12T17:27:32.814614,R1_numeric_null,commodity_id,1,fill in Com ID !!,0,null/junk → 0
+2026-04-12T17:27:32.814631,R1_numeric_null,commodity_id,2,fill in Com ID !!,0,null/junk → 0
+2026-04-12T17:27:32.814639,R1_numeric_null,commodity_id,13,fill in Com ID !!,0,null/junk → 0
+2026-04-12T17:27:32.814646,R1_numeric_null,commodity_id,35,fill in Com ID !!,0,null/junk → 0
+2026-04-12T17:27:32.814653,R1_numeric_null,commodity_id,36,fill in Com ID !!,0,null/junk → 0
+2026-04-12T17:27:32.823668,R1_numeric_null,cost_center_code,408501,nan,0,null/junk → 0
+2026-04-12T17:27:32.823682,R1_numeric_null,cost_center_code,408502,nan,0,null/junk → 0
+2026-04-12T17:27:32.823690,R1_numeric_null,cost_center_code,408503,nan,0,null/junk → 0
+2026-04-12T17:27:32.823697,R1_numeric_null,cost_center_code,408521,nan,0,null/junk → 0
+2026-04-12T17:27:32.823703,R1_numeric_null,cost_center_code,408522,nan,0,null/junk → 0
+2026-04-12T17:27:32.829700,R1_numeric_null,quantity,408501,nan,0,null/junk → 0
+2026-04-12T17:27:32.829716,R1_numeric_null,quantity,408503,nan,0,null/junk → 0
+2026-04-12T17:27:32.829723,R1_numeric_null,quantity,408521,nan,0,null/junk → 0
+2026-04-12T17:27:32.829730,R1_numeric_null,quantity,408523,nan,0,null/junk → 0
+2026-04-12T17:27:32.829736,R1_numeric_null,quantity,408524,nan,0,null/junk → 0
+2026-04-12T17:27:32.835147,R1_numeric_null,value_per_item_k,408501,nan,0,null/junk → 0
+2026-04-12T17:27:32.835158,R1_numeric_null,value_per_item_k,408503,nan,0,null/junk → 0
+2026-04-12T17:27:32.835165,R1_numeric_null,value_per_item_k,408521,nan,0,null/junk → 0
+2026-04-12T17:27:32.835171,R1_numeric_null,value_per_item_k,408523,nan,0,null/junk → 0
+2026-04-12T17:27:32.835177,R1_numeric_null,value_per_item_k,408524,nan,0,null/junk → 0
+2026-04-12T17:27:32.838255,R1_numeric_null,budgeted_value_lcc_2526_k_eur,101031,nan,0,null/junk → 0
+2026-04-12T17:27:32.838264,R1_numeric_null,budgeted_value_lcc_2526_k_eur,101032,nan,0,null/junk → 0
+2026-04-12T17:27:32.838271,R1_numeric_null,budgeted_value_lcc_2526_k_eur,101033,nan,0,null/junk → 0
+2026-04-12T17:27:32.838278,R1_numeric_null,budgeted_value_lcc_2526_k_eur,101034,nan,0,null/junk → 0
+2026-04-12T17:27:32.838284,R1_numeric_null,budgeted_value_lcc_2526_k_eur,101035,nan,0,null/junk → 0
+2026-04-12T17:27:32.845050,R1_numeric_null,lcc_value_option_2526_k_eur,408520,nan,0,null/junk → 0
+2026-04-12T17:27:32.845063,R1_numeric_null,lcc_value_option_2526_k_eur,408465,nan,0,null/junk → 0
+2026-04-12T17:27:32.845070,R1_numeric_null,lcc_value_option_2526_k_eur,408474,nan,0,null/junk → 0
+2026-04-12T17:27:32.845077,R1_numeric_null,lcc_value_option_2526_k_eur,408476,nan,0,null/junk → 0
+2026-04-12T17:27:32.845083,R1_numeric_null,lcc_value_option_2526_k_eur,134001,nan,0,null/junk → 0
+2026-04-12T17:27:32.848418,R1_numeric_null,savings_lcc_2526_k_eur,120004,nan,0,null/junk → 0
+2026-04-12T17:27:32.848427,R1_numeric_null,savings_lcc_2526_k_eur,408484,nan,0,null/junk → 0
+2026-04-12T17:27:32.848434,R1_numeric_null,savings_lcc_2526_k_eur,870008,nan,0,null/junk → 0
+2026-04-12T17:27:32.848440,R1_numeric_null,savings_lcc_2526_k_eur,870028,nan,0,null/junk → 0
+2026-04-12T17:27:32.848446,R1_numeric_null,savings_lcc_2526_k_eur,870032,nan,0,null/junk → 0
+2026-04-12T17:27:32.862021,R1_numeric_null,capex_already_ordered,408501,nan,0,null/junk → 0
+2026-04-12T17:27:32.862038,R1_numeric_null,capex_already_ordered,408502,nan,0,null/junk → 0
+2026-04-12T17:27:32.862045,R1_numeric_null,capex_already_ordered,408503,nan,0,null/junk → 0
+2026-04-12T17:27:32.862051,R1_numeric_null,capex_already_ordered,408520,nan,0,null/junk → 0
+2026-04-12T17:27:32.862062,R1_numeric_null,capex_already_ordered,408521,nan,0,null/junk → 0
+2026-04-12T17:27:32.874803,R1_numeric_null,add_sap_budget_existing_wbs,408501,nan,0,null/junk → 0
+2026-04-12T17:27:32.874818,R1_numeric_null,add_sap_budget_existing_wbs,408502,nan,0,null/junk → 0
+2026-04-12T17:27:32.874825,R1_numeric_null,add_sap_budget_existing_wbs,408503,nan,0,null/junk → 0
+2026-04-12T17:27:32.874831,R1_numeric_null,add_sap_budget_existing_wbs,408520,nan,0,null/junk → 0
+2026-04-12T17:27:32.874837,R1_numeric_null,add_sap_budget_existing_wbs,408521,nan,0,null/junk → 0
+2026-04-12T17:27:32.881274,R1_numeric_null,monthly_apr_2025,408502,nan,0,null/junk → 0
+2026-04-12T17:27:32.881287,R1_numeric_null,monthly_apr_2025,408520,nan,0,null/junk → 0
+2026-04-12T17:27:32.881294,R1_numeric_null,monthly_apr_2025,408522,nan,0,null/junk → 0
+2026-04-12T17:27:32.881300,R1_numeric_null,monthly_apr_2025,408523,nan,0,null/junk → 0
+2026-04-12T17:27:32.881306,R1_numeric_null,monthly_apr_2025,408469,nan,0,null/junk → 0
+2026-04-12T17:27:32.887548,R1_numeric_null,monthly_may_2025,408502,nan,0,null/junk → 0
+2026-04-12T17:27:32.887560,R1_numeric_null,monthly_may_2025,408520,nan,0,null/junk → 0
+2026-04-12T17:27:32.887566,R1_numeric_null,monthly_may_2025,408522,nan,0,null/junk → 0
+2026-04-12T17:27:32.887572,R1_numeric_null,monthly_may_2025,408523,nan,0,null/junk → 0
+2026-04-12T17:27:32.887578,R1_numeric_null,monthly_may_2025,408469,nan,0,null/junk → 0
+2026-04-12T17:27:32.893762,R1_numeric_null,monthly_jun_2025,408502,nan,0,null/junk → 0
+2026-04-12T17:27:32.893774,R1_numeric_null,monthly_jun_2025,408520,nan,0,null/junk → 0
+2026-04-12T17:27:32.893781,R1_numeric_null,monthly_jun_2025,408522,nan,0,null/junk → 0
+2026-04-12T17:27:32.893788,R1_numeric_null,monthly_jun_2025,408523,nan,0,null/junk → 0
+2026-04-12T17:27:32.893797,R1_numeric_null,monthly_jun_2025,408469,nan,0,null/junk → 0
+2026-04-12T17:27:32.899795,R1_numeric_null,monthly_jul_2025,408502,nan,0,null/junk → 0
+2026-04-12T17:27:32.899806,R1_numeric_null,monthly_jul_2025,408520,nan,0,null/junk → 0
+2026-04-12T17:27:32.899812,R1_numeric_null,monthly_jul_2025,408522,nan,0,null/junk → 0
+2026-04-12T17:27:32.899818,R1_numeric_null,monthly_jul_2025,408523,nan,0,null/junk → 0
+2026-04-12T17:27:32.899825,R1_numeric_null,monthly_jul_2025,408469,nan,0,null/junk → 0
+2026-04-12T17:27:32.905778,R1_numeric_null,monthly_aug_2025,408502,nan,0,null/junk → 0
+2026-04-12T17:27:32.905788,R1_numeric_null,monthly_aug_2025,408520,nan,0,null/junk → 0
+2026-04-12T17:27:32.905795,R1_numeric_null,monthly_aug_2025,408522,nan,0,null/junk → 0
+2026-04-12T17:27:32.905801,R1_numeric_null,monthly_aug_2025,408523,nan,0,null/junk → 0
+2026-04-12T17:27:32.905807,R1_numeric_null,monthly_aug_2025,408469,nan,0,null/junk → 0
+2026-04-12T17:27:32.911841,R1_numeric_null,monthly_sep_2025,408502,nan,0,null/junk → 0
+2026-04-12T17:27:32.911855,R1_numeric_null,monthly_sep_2025,408523,nan,0,null/junk → 0
+2026-04-12T17:27:32.911862,R1_numeric_null,monthly_sep_2025,408469,nan,0,null/junk → 0
+2026-04-12T17:27:32.911869,R1_numeric_null,monthly_sep_2025,408473,nan,0,null/junk → 0
+2026-04-12T17:27:32.911875,R1_numeric_null,monthly_sep_2025,408475,nan,0,null/junk → 0
+2026-04-12T17:27:32.917917,R1_numeric_null,monthly_oct_2025,408502,nan,0,null/junk → 0
+2026-04-12T17:27:32.917928,R1_numeric_null,monthly_oct_2025,408520,nan,0,null/junk → 0
+2026-04-12T17:27:32.917934,R1_numeric_null,monthly_oct_2025,408522,nan,0,null/junk → 0
+2026-04-12T17:27:32.917941,R1_numeric_null,monthly_oct_2025,408523,nan,0,null/junk → 0
+2026-04-12T17:27:32.917948,R1_numeric_null,monthly_oct_2025,408469,nan,0,null/junk → 0
+2026-04-12T17:27:32.923933,R1_numeric_null,monthly_nov_2025,408502,nan,0,null/junk → 0
+2026-04-12T17:27:32.923943,R1_numeric_null,monthly_nov_2025,408520,nan,0,null/junk → 0
+2026-04-12T17:27:32.923950,R1_numeric_null,monthly_nov_2025,408522,nan,0,null/junk → 0
+2026-04-12T17:27:32.923956,R1_numeric_null,monthly_nov_2025,408523,nan,0,null/junk → 0
+2026-04-12T17:27:32.923962,R1_numeric_null,monthly_nov_2025,408469,nan,0,null/junk → 0
+2026-04-12T17:27:32.930037,R1_numeric_null,monthly_dec_2025,408502,nan,0,null/junk → 0
+2026-04-12T17:27:32.930053,R1_numeric_null,monthly_dec_2025,408520,nan,0,null/junk → 0
+2026-04-12T17:27:32.930061,R1_numeric_null,monthly_dec_2025,408522,nan,0,null/junk → 0
+2026-04-12T17:27:32.930068,R1_numeric_null,monthly_dec_2025,408523,nan,0,null/junk → 0
+2026-04-12T17:27:32.930074,R1_numeric_null,monthly_dec_2025,408469,nan,0,null/junk → 0
+2026-04-12T17:27:32.936057,R1_numeric_null,monthly_jan_2026,408502,nan,0,null/junk → 0
+2026-04-12T17:27:32.936068,R1_numeric_null,monthly_jan_2026,408520,nan,0,null/junk → 0
+2026-04-12T17:27:32.936075,R1_numeric_null,monthly_jan_2026,408522,nan,0,null/junk → 0
+2026-04-12T17:27:32.936081,R1_numeric_null,monthly_jan_2026,408523,nan,0,null/junk → 0
+2026-04-12T17:27:32.936087,R1_numeric_null,monthly_jan_2026,408469,nan,0,null/junk → 0
+2026-04-12T17:27:32.942065,R1_numeric_null,monthly_feb_2026,408502,nan,0,null/junk → 0
+2026-04-12T17:27:32.942074,R1_numeric_null,monthly_feb_2026,408520,nan,0,null/junk → 0
+2026-04-12T17:27:32.942080,R1_numeric_null,monthly_feb_2026,408522,nan,0,null/junk → 0
+2026-04-12T17:27:32.942086,R1_numeric_null,monthly_feb_2026,408523,nan,0,null/junk → 0
+2026-04-12T17:27:32.942092,R1_numeric_null,monthly_feb_2026,408469,nan,0,null/junk → 0
+2026-04-12T17:27:32.947907,R1_numeric_null,monthly_mar_2026,408502,nan,0,null/junk → 0
+2026-04-12T17:27:32.947916,R1_numeric_null,monthly_mar_2026,408522,nan,0,null/junk → 0
+2026-04-12T17:27:32.947922,R1_numeric_null,monthly_mar_2026,408523,nan,0,null/junk → 0
+2026-04-12T17:27:32.947933,R1_numeric_null,monthly_mar_2026,408473,nan,0,null/junk → 0
+2026-04-12T17:27:32.947939,R1_numeric_null,monthly_mar_2026,134001,nan,0,null/junk → 0
+2026-04-12T17:27:32.955970,R1_numeric_null,monthly_apr_2026,408501,nan,0,null/junk → 0
+2026-04-12T17:27:32.955979,R1_numeric_null,monthly_apr_2026,408502,nan,0,null/junk → 0
+2026-04-12T17:27:32.955986,R1_numeric_null,monthly_apr_2026,408503,nan,0,null/junk → 0
+2026-04-12T17:27:32.955992,R1_numeric_null,monthly_apr_2026,408520,nan,0,null/junk → 0
+2026-04-12T17:27:32.955999,R1_numeric_null,monthly_apr_2026,408521,nan,0,null/junk → 0
+2026-04-12T17:27:32.964125,R1_numeric_null,monthly_may_2026,408501,nan,0,null/junk → 0
+2026-04-12T17:27:32.964136,R1_numeric_null,monthly_may_2026,408502,nan,0,null/junk → 0
+2026-04-12T17:27:32.964142,R1_numeric_null,monthly_may_2026,408503,nan,0,null/junk → 0
+2026-04-12T17:27:32.964149,R1_numeric_null,monthly_may_2026,408520,nan,0,null/junk → 0
+2026-04-12T17:27:32.964155,R1_numeric_null,monthly_may_2026,408521,nan,0,null/junk → 0
+2026-04-12T17:27:32.972094,R1_numeric_null,monthly_jun_2026,408501,nan,0,null/junk → 0
+2026-04-12T17:27:32.972104,R1_numeric_null,monthly_jun_2026,408502,nan,0,null/junk → 0
+2026-04-12T17:27:32.972110,R1_numeric_null,monthly_jun_2026,408503,nan,0,null/junk → 0
+2026-04-12T17:27:32.972117,R1_numeric_null,monthly_jun_2026,408520,nan,0,null/junk → 0
+2026-04-12T17:27:32.972123,R1_numeric_null,monthly_jun_2026,408521,nan,0,null/junk → 0
+2026-04-12T17:27:32.980090,R1_numeric_null,monthly_jul_2026,408501,nan,0,null/junk → 0
+2026-04-12T17:27:32.980100,R1_numeric_null,monthly_jul_2026,408502,nan,0,null/junk → 0
+2026-04-12T17:27:32.980107,R1_numeric_null,monthly_jul_2026,408503,nan,0,null/junk → 0
+2026-04-12T17:27:32.980113,R1_numeric_null,monthly_jul_2026,408520,nan,0,null/junk → 0
+2026-04-12T17:27:32.980120,R1_numeric_null,monthly_jul_2026,408521,nan,0,null/junk → 0
+2026-04-12T17:27:32.987972,R1_numeric_null,monthly_aug_2026,408501,nan,0,null/junk → 0
+2026-04-12T17:27:32.987982,R1_numeric_null,monthly_aug_2026,408502,nan,0,null/junk → 0
+2026-04-12T17:27:32.987989,R1_numeric_null,monthly_aug_2026,408503,nan,0,null/junk → 0
+2026-04-12T17:27:32.987996,R1_numeric_null,monthly_aug_2026,408520,nan,0,null/junk → 0
+2026-04-12T17:27:32.988002,R1_numeric_null,monthly_aug_2026,408521,nan,0,null/junk → 0
+2026-04-12T17:27:32.995866,R1_numeric_null,monthly_sep_2026,408501,nan,0,null/junk → 0
+2026-04-12T17:27:32.995876,R1_numeric_null,monthly_sep_2026,408502,nan,0,null/junk → 0
+2026-04-12T17:27:32.995883,R1_numeric_null,monthly_sep_2026,408503,nan,0,null/junk → 0
+2026-04-12T17:27:32.995889,R1_numeric_null,monthly_sep_2026,408520,nan,0,null/junk → 0
+2026-04-12T17:27:32.995895,R1_numeric_null,monthly_sep_2026,408521,nan,0,null/junk → 0
+2026-04-12T17:27:33.003545,R1_numeric_null,monthly_oct_2026,408501,nan,0,null/junk → 0
+2026-04-12T17:27:33.003555,R1_numeric_null,monthly_oct_2026,408502,nan,0,null/junk → 0
+2026-04-12T17:27:33.003562,R1_numeric_null,monthly_oct_2026,408503,nan,0,null/junk → 0
+2026-04-12T17:27:33.003568,R1_numeric_null,monthly_oct_2026,408520,nan,0,null/junk → 0
+2026-04-12T17:27:33.003575,R1_numeric_null,monthly_oct_2026,408521,nan,0,null/junk → 0
+2026-04-12T17:27:33.011518,R1_numeric_null,monthly_nov_2026,408501,nan,0,null/junk → 0
+2026-04-12T17:27:33.011533,R1_numeric_null,monthly_nov_2026,408502,nan,0,null/junk → 0
+2026-04-12T17:27:33.011540,R1_numeric_null,monthly_nov_2026,408503,nan,0,null/junk → 0
+2026-04-12T17:27:33.011546,R1_numeric_null,monthly_nov_2026,408520,nan,0,null/junk → 0
+2026-04-12T17:27:33.011552,R1_numeric_null,monthly_nov_2026,408521,nan,0,null/junk → 0
+2026-04-12T17:27:33.019539,R1_numeric_null,monthly_dec_2026,408501,nan,0,null/junk → 0
+2026-04-12T17:27:33.019549,R1_numeric_null,monthly_dec_2026,408502,nan,0,null/junk → 0
+2026-04-12T17:27:33.019555,R1_numeric_null,monthly_dec_2026,408503,nan,0,null/junk → 0
+2026-04-12T17:27:33.019562,R1_numeric_null,monthly_dec_2026,408520,nan,0,null/junk → 0
+2026-04-12T17:27:33.019568,R1_numeric_null,monthly_dec_2026,408521,nan,0,null/junk → 0
+2026-04-12T17:27:33.028172,R1_numeric_null,monthly_jan_2027,408501,nan,0,null/junk → 0
+2026-04-12T17:27:33.028195,R1_numeric_null,monthly_jan_2027,408502,nan,0,null/junk → 0
+2026-04-12T17:27:33.028203,R1_numeric_null,monthly_jan_2027,408503,nan,0,null/junk → 0
+2026-04-12T17:27:33.028209,R1_numeric_null,monthly_jan_2027,408520,nan,0,null/junk → 0
+2026-04-12T17:27:33.028215,R1_numeric_null,monthly_jan_2027,408521,nan,0,null/junk → 0
+2026-04-12T17:27:33.036309,R1_numeric_null,monthly_feb_2027,408501,nan,0,null/junk → 0
+2026-04-12T17:27:33.036319,R1_numeric_null,monthly_feb_2027,408502,nan,0,null/junk → 0
+2026-04-12T17:27:33.036326,R1_numeric_null,monthly_feb_2027,408503,nan,0,null/junk → 0
+2026-04-12T17:27:33.036332,R1_numeric_null,monthly_feb_2027,408520,nan,0,null/junk → 0
+2026-04-12T17:27:33.036338,R1_numeric_null,monthly_feb_2027,408521,nan,0,null/junk → 0
+2026-04-12T17:27:33.043689,R1_numeric_null,monthly_mar_2027,408502,nan,0,null/junk → 0
+2026-04-12T17:27:33.043700,R1_numeric_null,monthly_mar_2027,408520,nan,0,null/junk → 0
+2026-04-12T17:27:33.043707,R1_numeric_null,monthly_mar_2027,408522,nan,0,null/junk → 0
+2026-04-12T17:27:33.043714,R1_numeric_null,monthly_mar_2027,408523,nan,0,null/junk → 0
+2026-04-12T17:27:33.043720,R1_numeric_null,monthly_mar_2027,408471,nan,0,null/junk → 0
+2026-04-12T17:27:33.055035,R1_numeric_null,budget_q1_2026,130003,nan,0,null/junk → 0
+2026-04-12T17:27:33.068697,R1_numeric_null,budget_fy_2627,870016,nan,0,null/junk → 0
+2026-04-12T17:27:33.068710,R1_numeric_null,budget_fy_2627,408439,nan,0,null/junk → 0
+2026-04-12T17:27:33.068717,R1_numeric_null,budget_fy_2627,408436,nan,0,null/junk → 0
+2026-04-12T17:27:33.068724,R1_numeric_null,budget_fy_2627,124029,nan,0,null/junk → 0
+2026-04-12T17:27:33.068731,R1_numeric_null,budget_fy_2627,412004,nan,0,null/junk → 0
+2026-04-12T17:27:33.074980,R1_numeric_null,plan_fy_2728,408502,nan,0,null/junk → 0
+2026-04-12T17:27:33.074992,R1_numeric_null,plan_fy_2728,408520,nan,0,null/junk → 0
+2026-04-12T17:27:33.074999,R1_numeric_null,plan_fy_2728,408522,nan,0,null/junk → 0
+2026-04-12T17:27:33.075005,R1_numeric_null,plan_fy_2728,408523,nan,0,null/junk → 0
+2026-04-12T17:27:33.075011,R1_numeric_null,plan_fy_2728,408469,nan,0,null/junk → 0
+2026-04-12T17:27:33.080848,R1_numeric_null,plan_fy_2829,408502,nan,0,null/junk → 0
+2026-04-12T17:27:33.080857,R1_numeric_null,plan_fy_2829,408520,nan,0,null/junk → 0
+2026-04-12T17:27:33.080864,R1_numeric_null,plan_fy_2829,408522,nan,0,null/junk → 0
+2026-04-12T17:27:33.080870,R1_numeric_null,plan_fy_2829,408523,nan,0,null/junk → 0
+2026-04-12T17:27:33.080876,R1_numeric_null,plan_fy_2829,408469,nan,0,null/junk → 0
+2026-04-12T17:27:33.086820,R1_numeric_null,plan_fy_2930,408502,nan,0,null/junk → 0
+2026-04-12T17:27:33.086833,R1_numeric_null,plan_fy_2930,408520,nan,0,null/junk → 0
+2026-04-12T17:27:33.086839,R1_numeric_null,plan_fy_2930,408522,nan,0,null/junk → 0
+2026-04-12T17:27:33.086846,R1_numeric_null,plan_fy_2930,408523,nan,0,null/junk → 0
+2026-04-12T17:27:33.086852,R1_numeric_null,plan_fy_2930,408469,nan,0,null/junk → 0
+2026-04-12T17:27:33.124296,R1_numeric_null,bms_oct_2025,101030,nan,0,null/junk → 0
+2026-04-12T17:27:33.124305,R1_numeric_null,bms_oct_2025,411006,nan,0,null/junk → 0
+2026-04-12T17:27:33.124312,R1_numeric_null,bms_oct_2025,101043,nan,0,null/junk → 0
+2026-04-12T17:27:33.124318,R1_numeric_null,bms_oct_2025,408477,nan,0,null/junk → 0
+2026-04-12T17:27:33.124325,R1_numeric_null,bms_oct_2025,111047,nan,0,null/junk → 0
+2026-04-12T17:27:33.155717,R2_categorical_null,cost_center_responsible,408501,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.155730,R2_categorical_null,cost_center_responsible,408502,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.155738,R2_categorical_null,cost_center_responsible,408503,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.155745,R2_categorical_null,cost_center_responsible,408521,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.155751,R2_categorical_null,cost_center_responsible,408523,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.159946,R2_categorical_null,investment_description,105028,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.159955,R2_categorical_null,investment_description,1,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.159962,R2_categorical_null,investment_description,2,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.159969,R2_categorical_null,investment_description,13,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.159976,R2_categorical_null,investment_description,35,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.165427,R2_categorical_null,customer,408501,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.165436,R2_categorical_null,customer,408520,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.165443,R2_categorical_null,customer,408522,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.165450,R2_categorical_null,customer,408523,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.165457,R2_categorical_null,customer,408466,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.169592,R2_categorical_null,car_model,408501,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.169601,R2_categorical_null,car_model,408520,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.169607,R2_categorical_null,car_model,408522,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.169614,R2_categorical_null,car_model,408523,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.169621,R2_categorical_null,car_model,408466,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.174995,R2_categorical_null,purchasing_l3,101033,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.175005,R2_categorical_null,purchasing_l3,114001,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.175013,R2_categorical_null,purchasing_l3,408370,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.175020,R2_categorical_null,purchasing_l3,101064,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.175027,R2_categorical_null,purchasing_l3,101065,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.177391,R2_categorical_null,purchasing_l4,101033,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.177399,R2_categorical_null,purchasing_l4,114001,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.177406,R2_categorical_null,purchasing_l4,408370,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.177413,R2_categorical_null,purchasing_l4,101064,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.177419,R2_categorical_null,purchasing_l4,101065,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.179671,R2_categorical_null,purchasing_l5,101033,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.179679,R2_categorical_null,purchasing_l5,114001,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.179685,R2_categorical_null,purchasing_l5,408370,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.179692,R2_categorical_null,purchasing_l5,101064,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.179699,R2_categorical_null,purchasing_l5,101065,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.181933,R2_categorical_null,purchasing_l6,101033,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.181941,R2_categorical_null,purchasing_l6,114001,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.181948,R2_categorical_null,purchasing_l6,408370,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.181955,R2_categorical_null,purchasing_l6,101064,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.181961,R2_categorical_null,purchasing_l6,101065,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.190190,R2_categorical_null,mpp_value_level,408501,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.190199,R2_categorical_null,mpp_value_level,408502,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.190206,R2_categorical_null,mpp_value_level,408503,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.190213,R2_categorical_null,mpp_value_level,408520,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.190220,R2_categorical_null,mpp_value_level,408521,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.195661,R2_categorical_null,mpp_l3_analysis,408501,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.195670,R2_categorical_null,mpp_l3_analysis,408502,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.195677,R2_categorical_null,mpp_l3_analysis,408503,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.195685,R2_categorical_null,mpp_l3_analysis,408521,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.195692,R2_categorical_null,mpp_l3_analysis,408522,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.203541,R2_categorical_null,comment,408501,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.203549,R2_categorical_null,comment,408502,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.203556,R2_categorical_null,comment,408503,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.203563,R2_categorical_null,comment,408520,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.203570,R2_categorical_null,comment,408521,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.206168,R2_categorical_null,sustainability,408501,please select !,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.206176,R2_categorical_null,sustainability,408503,please select !,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.206183,R2_categorical_null,sustainability,408521,please select !,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.206190,R2_categorical_null,sustainability,408524,please select !,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.206197,R2_categorical_null,sustainability,408525,please select !,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.208996,R2_categorical_null,productive_non_productive,408501,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.209005,R2_categorical_null,productive_non_productive,408503,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.209012,R2_categorical_null,productive_non_productive,408521,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.209019,R2_categorical_null,productive_non_productive,408524,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.209026,R2_categorical_null,productive_non_productive,408525,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.211724,R2_categorical_null,condition_of_asset,408501,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.211732,R2_categorical_null,condition_of_asset,408503,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.211739,R2_categorical_null,condition_of_asset,408521,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.211746,R2_categorical_null,condition_of_asset,408524,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.211753,R2_categorical_null,condition_of_asset,408525,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.214826,R2_categorical_null,unit_of_measure,408501,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.214834,R2_categorical_null,unit_of_measure,408503,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.214840,R2_categorical_null,unit_of_measure,408521,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.214847,R2_categorical_null,unit_of_measure,408523,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.214854,R2_categorical_null,unit_of_measure,408524,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.218248,R2_categorical_null,source_of_funding,408501,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.218255,R2_categorical_null,source_of_funding,408502,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.218262,R2_categorical_null,source_of_funding,408503,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.218269,R2_categorical_null,source_of_funding,408521,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.218276,R2_categorical_null,source_of_funding,408524,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.223258,R2_categorical_null,bms_account_code,234,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.223267,R2_categorical_null,bms_account_code,235,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.223274,R2_categorical_null,bms_account_code,237,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.223281,R2_categorical_null,bms_account_code,101031,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.223288,R2_categorical_null,bms_account_code,101032,nan,Unknown,null/junk → Unknown
+2026-04-12T17:27:33.228007,R9_productive_norm,productive_non_productive,408523,non productive,Non Productive,standardise productive_non_productive
+2026-04-12T17:27:33.228020,R9_productive_norm,productive_non_productive,408466,non productive,Non Productive,standardise productive_non_productive
+2026-04-12T17:27:33.228029,R9_productive_norm,productive_non_productive,408467,non productive,Non Productive,standardise productive_non_productive
+2026-04-12T17:27:33.228038,R9_productive_norm,productive_non_productive,408469,non productive,Non Productive,standardise productive_non_productive
+2026-04-12T17:27:33.228047,R9_productive_norm,productive_non_productive,408471,non productive,Non Productive,standardise productive_non_productive
+2026-04-12T17:27:33.228055,R9_productive_norm,productive_non_productive,408474,non productive,Non Productive,standardise productive_non_productive
+2026-04-12T17:27:33.228063,R9_productive_norm,productive_non_productive,408476,non productive,Non Productive,standardise productive_non_productive
+2026-04-12T17:27:33.228073,R9_productive_norm,productive_non_productive,134001,non productive,Non Productive,standardise productive_non_productive
+2026-04-12T17:27:33.228081,R9_productive_norm,productive_non_productive,134005,non productive,Non Productive,standardise productive_non_productive
+2026-04-12T17:27:33.228089,R9_productive_norm,productive_non_productive,134007,non productive,Non Productive,standardise productive_non_productive
+2026-04-12T17:27:33.234898,R8_boolean_norm,confirmation_required,408501,nan,Unknown,
+2026-04-12T17:27:33.234912,R8_boolean_norm,confirmation_required,408502,nan,Unknown,
+2026-04-12T17:27:33.234922,R8_boolean_norm,confirmation_required,408503,nan,Unknown,
+2026-04-12T17:27:33.234931,R8_boolean_norm,confirmation_required,408520,nan,Unknown,
+2026-04-12T17:27:33.234940,R8_boolean_norm,confirmation_required,408521,nan,Unknown,
+2026-04-12T17:27:33.242488,R8_boolean_norm,already_sourced,408501,nan,Unknown,
+2026-04-12T17:27:33.242501,R8_boolean_norm,already_sourced,408502,no,No,
+2026-04-12T17:27:33.242510,R8_boolean_norm,already_sourced,408503,nan,Unknown,
+2026-04-12T17:27:33.242519,R8_boolean_norm,already_sourced,408520,no,No,
+2026-04-12T17:27:33.242528,R8_boolean_norm,already_sourced,408521,nan,Unknown,
+2026-04-12T17:27:33.249559,R8_boolean_norm,already_sourced_2,408501,no,No,
+2026-04-12T17:27:33.249571,R8_boolean_norm,already_sourced_2,408502,no,No,
+2026-04-12T17:27:33.249581,R8_boolean_norm,already_sourced_2,408503,no,No,
+2026-04-12T17:27:33.249589,R8_boolean_norm,already_sourced_2,408520,no,No,
+2026-04-12T17:27:33.249598,R8_boolean_norm,already_sourced_2,408521,no,No,
+2026-04-12T17:27:33.256636,R8_boolean_norm,lcc_capable,408501,0,No,
+2026-04-12T17:27:33.256648,R8_boolean_norm,lcc_capable,408502,no,No,
+2026-04-12T17:27:33.256657,R8_boolean_norm,lcc_capable,408503,0,No,
+2026-04-12T17:27:33.256665,R8_boolean_norm,lcc_capable,408520,no,No,
+2026-04-12T17:27:33.256674,R8_boolean_norm,lcc_capable,408521,0,No,
+2026-04-12T17:27:33.263589,R8_boolean_norm,realized_lcc_2526,408501,??,Unknown,
+2026-04-12T17:27:33.263602,R8_boolean_norm,realized_lcc_2526,408502,yes,Yes,
+2026-04-12T17:27:33.263612,R8_boolean_norm,realized_lcc_2526,408503,??,Unknown,
+2026-04-12T17:27:33.263621,R8_boolean_norm,realized_lcc_2526,408520,no,No,
+2026-04-12T17:27:33.263629,R8_boolean_norm,realized_lcc_2526,408521,??,Unknown,
+2026-04-12T17:27:33.267795,R6_true_duplicate,investment_id,101054,true_duplicate,dropped,same id+plant+description — keeping last
+2026-04-12T17:27:33.267803,R6_true_duplicate,investment_id,101054,true_duplicate,dropped,same id+plant+description — keeping last
+2026-04-12T17:27:33.267808,R6_true_duplicate,investment_id,105036,true_duplicate,dropped,same id+plant+description — keeping last
+2026-04-12T17:27:33.267813,R6_true_duplicate,investment_id,105036,true_duplicate,dropped,same id+plant+description — keeping last
