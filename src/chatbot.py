@@ -1337,11 +1337,10 @@ class InvestmentChatbot:
         self._pending         = None   # stores original_q waiting for year
 
     def _check_ollama(self) -> bool:
-        try:
-            r = requests.get("http://localhost:11434", timeout=2)
-            return r.status_code == 200
-        except Exception:
-            return False
+    """Check if Gemini API key is available."""
+    import os
+    key = os.getenv("AIzaSyCa7qutEKZvYjxsnX_iMI-4OXJMGNqHySI", "")
+    return bool(key)
 
     def _key(self, q): return hashlib.md5(q.lower().strip().encode()).hexdigest()
 
@@ -1355,24 +1354,21 @@ class InvestmentChatbot:
             return None
 
     def _llm_sql(self, question: str, lang: str = "english") -> str | None:
-        """
-        Generate SQL via Ollama/Mistral for questions the rule-based
-        builder could not handle.
+    """
+    Generate SQL via Google Gemini for questions the rule-based
+    builder could not handle.
+    """
+    import os
+    api_key = os.getenv("GEMINI_API_KEY", "")
+    if not api_key:
+        return None
 
-        Improvements vs v1:
-        - Language is passed explicitly so the model knows the input language
-        - Normalized (English-ish) version is included alongside the original
-          so Mistral does not have to translate German/Hindi alone
-        - Conversation history is trimmed to last 3 turns to stay within context
-        - Response is cleaned more aggressively before returning
-        """
-        if not self.ollama_available:
-            return None
+    try:
+        import google.generativeai as genai
+        genai.configure(api_key=api_key)
+        model = genai.GenerativeModel("gemini-1.5-flash")
 
-        # Normalize the question (applies WORD_MAP/PHRASE_MAP translations)
         q_norm = normalise(question.lower().strip())
-
-        # Last 3 turns of conversation context (6 messages max)
         recent = list(self._memory)[-6:]
         ctx = "\n".join(
             f"{'User' if m['role']=='user' else 'Bot'}: {m['content']}"
@@ -1397,25 +1393,22 @@ Normalised (hints): {q_norm}
 
 Write a single valid PostgreSQL SELECT query. Return ONLY the SQL, nothing else.
 SQL:"""
-        try:
-            r = requests.post(
-                "http://localhost:11434/api/generate",
-                json={"model": "mistral", "prompt": prompt, "stream": False},
-                timeout=30,
-            )
-            sql = r.json().get("response", "").strip()
-            # Strip markdown fences, leading/trailing noise
-            sql = re.sub(r"```sql|```", "", sql).strip()
-            sql = re.sub(r"^(sql|query)[:\s]+", "", sql, flags=re.I).strip()
-            # Take only the first statement
-            if ";" in sql:
-                sql = sql.split(";")[0].strip()
-            # Reject if model returned the unsupported sentinel or empty
-            if not sql or "unsupported" in sql.lower():
-                return None
-            return sql
-        except Exception:
+
+        response = model.generate_content(prompt)
+        sql = response.text.strip()
+
+        # Clean up response
+        sql = re.sub(r"```sql|```", "", sql).strip()
+        sql = re.sub(r"^(sql|query)[:\s]+", "", sql, flags=re.I).strip()
+        if ";" in sql:
+            sql = sql.split(";")[0].strip()
+        if not sql or "unsupported" in sql.lower():
             return None
+        return sql
+
+    except Exception as e:
+        print(f"[GEMINI ERROR] {e}")
+        return None
 
     def _resolve_clarification(self, q: str) -> str | None:
         """
