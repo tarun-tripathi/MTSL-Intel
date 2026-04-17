@@ -553,7 +553,7 @@ elif page == "Chatbot":
     chatbot = st.session_state.chatbot
  
     if not chatbot.ollama_available:
-        st.warning("Ollama is not running. Start it with: `ollama serve`")
+        st.warning("Ollama is not running. Start it with: `Gemini`")
  
     # ── Process suggestion click ──────────────────────────
     if "pending" in st.session_state:
