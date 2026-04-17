@@ -144,18 +144,18 @@ def clean(df: pd.DataFrame, log_path: str = "data/logs/cleaning_log.csv") -> tup
     clog = CleaningLog()
     log.info("Starting cleaning — %d rows", len(df))
 
-    # ── R7: strip whitespace first ─────────────────────────
-    log.info("R7 — stripping whitespace")
+    # ── R1: strip whitespace first ─────────────────────────
+    log.info("R1 — stripping whitespace")
     for col in df.select_dtypes(include="object").columns:
         before = df[col].copy()
         df[col] = df[col].astype(str).str.strip()
         changed = df[col] != before.astype(str).str.strip()
         for idx in df[changed].head(10).index:
-            clog.record("R7_whitespace_strip", col, df.at[idx, "investment_id"],
+            clog.record("R1_whitespace_strip", col, df.at[idx, "investment_id"],
                         before.at[idx], df.at[idx, col])
 
-    # ── R4: fix known value inconsistencies ────────────────
-    log.info("R4 — fixing known value inconsistencies")
+    # ── R2: fix known value inconsistencies ────────────────
+    log.info("R2 — fixing known value inconsistencies")
     col_fix_map = {
         "investment_category": INVESTMENT_CATEGORY_FIXES,
         "source_of_funding":   FUNDING_SOURCE_FIXES,
@@ -167,10 +167,10 @@ def clean(df: pd.DataFrame, log_path: str = "data/logs/cleaning_log.csv") -> tup
             mask = df[col] == bad
             if mask.any():
                 for idx in df[mask].index:
-                    clog.record("R4_value_fix", col, df.at[idx, "investment_id"],
+                    clog.record("R2_value_fix", col, df.at[idx, "investment_id"],
                                 bad, good, f"standardise to '{good}'")
                 df.loc[mask, col] = good
-                log.info("  R4: '%s' → '%s' in '%s' (%d rows)", bad, good, col, mask.sum())
+                log.info("  R2: '%s' → '%s' in '%s' (%d rows)", bad, good, col, mask.sum())
 
     # ── R3: investment_category "please select !" → Unknown ─
     log.info("R3 — clearing 'please select !'")
@@ -183,8 +183,8 @@ def clean(df: pd.DataFrame, log_path: str = "data/logs/cleaning_log.csv") -> tup
         df.loc[mask, "investment_category"] = "Unknown"
         log.info("  R3: cleared %d placeholder values", mask.sum())
 
-    # ── R1: numeric columns → 0 for null/junk ──────────────
-    log.info("R1 — numeric nulls/junk → 0")
+    # ── R4: numeric columns → 0 for null/junk ──────────────
+    log.info("R4 — numeric nulls/junk → 0")
     num_changes = 0
     for col in NUMERIC_COLS:
         if col not in df.columns:
@@ -194,14 +194,14 @@ def clean(df: pd.DataFrame, log_path: str = "data/logs/cleaning_log.csv") -> tup
         null_mask = df[col].isna()
         if null_mask.any():
             for idx in df[null_mask].head(5).index:
-                clog.record("R1_numeric_null", col, df.at[idx, "investment_id"],
+                clog.record("R4_numeric_null", col, df.at[idx, "investment_id"],
                             original.at[idx], 0, "null/junk → 0")
             df.loc[null_mask, col] = 0
             num_changes += null_mask.sum()
-    log.info("  R1: filled %d null/junk values with 0", num_changes)
+    log.info("  R4: filled %d null/junk values with 0", num_changes)
 
-    # ── R2: categorical columns → "Unknown" for null/junk ──
-    log.info("R2 — categorical nulls/junk → 'Unknown'")
+    # ── R5: categorical columns → "Unknown" for null/junk ──
+    log.info("R5 — categorical nulls/junk → 'Unknown'")
     cat_changes = 0
     for col in CATEGORICAL_COLS:
         if col not in df.columns:
@@ -209,14 +209,14 @@ def clean(df: pd.DataFrame, log_path: str = "data/logs/cleaning_log.csv") -> tup
         mask = df[col].apply(_is_junk)
         if mask.any():
             for idx in df[mask].head(5).index:
-                clog.record("R2_categorical_null", col, df.at[idx, "investment_id"],
+                clog.record("R5_categorical_null", col, df.at[idx, "investment_id"],
                             df.at[idx, col], "Unknown", "null/junk → Unknown")
             df.loc[mask, col] = "Unknown"
             cat_changes += mask.sum()
-    log.info("  R2: filled %d null/junk categorical values with 'Unknown'", cat_changes)
+    log.info("  R5: filled %d null/junk categorical values with 'Unknown'", cat_changes)
 
-    # ── FIX-D / R9: standardise productive_non_productive ──
-    log.info("R9 — standardising productive_non_productive values")
+    # ── FIX-D / R6: standardise productive_non_productive ──
+    log.info("R6 — standardising productive_non_productive values")
     col = "productive_non_productive"
     if col in df.columns:
         original = df[col].copy()
@@ -229,13 +229,13 @@ def clean(df: pd.DataFrame, log_path: str = "data/logs/cleaning_log.csv") -> tup
         changed = df[col] != original
         n_changed = changed.sum()
         for idx in df[changed].head(10).index:
-            clog.record("R9_productive_norm", col, df.at[idx, "investment_id"],
+            clog.record("R6_productive_norm", col, df.at[idx, "investment_id"],
                         original.at[idx], df.at[idx, col],
                         "standardise productive_non_productive")
-        log.info("  R9: standardised %d productive_non_productive values", n_changed)
+        log.info("  R6: standardised %d productive_non_productive values", n_changed)
 
-    # ── R8: boolean-like columns ───────────────────────────
-    log.info("R8 — normalising boolean-like columns")
+    # ── R7: boolean-like columns ───────────────────────────
+    log.info("R7 — normalising boolean-like columns")
     yes_vals = {"yes", "y", "1", "true", "x"}
     no_vals  = {"no", "n", "0", "false", ""}
     for col in BOOLEAN_LIKE_COLS:
@@ -248,15 +248,15 @@ def clean(df: pd.DataFrame, log_path: str = "data/logs/cleaning_log.csv") -> tup
         )
         changed = df[col] != original
         for idx in df[changed].head(5).index:
-            clog.record("R8_boolean_norm", col, df.at[idx, "investment_id"],
+            clog.record("R7_boolean_norm", col, df.at[idx, "investment_id"],
                         original.at[idx], df.at[idx, col])
 
-    # ── R6: remove ONLY true duplicates ───────────────────
+    # ── R8: remove ONLY true duplicates ───────────────────
     # investment_id is NOT a unique identifier — it is a per-plant sequential counter.
     # The same ID at different plants = completely different physical investments.
     # True duplicates = same investment_id + plant + description (data entry errors).
     # Analysis showed only 2 such pairs (4 rows) in the full dataset.
-    log.info("R6 — removing true duplicates (same id+plant+description)")
+    log.info("R8 — removing true duplicates (same id+plant+description)")
     dedup_cols = [c for c in ["investment_id","plant","investment_description"]
                   if c in df.columns]
     if len(dedup_cols) == 3:
@@ -264,17 +264,17 @@ def clean(df: pd.DataFrame, log_path: str = "data/logs/cleaning_log.csv") -> tup
         dupes = df[df.duplicated(dedup_cols, keep=False)]
         if len(dupes):
             for idx in dupes.index:
-                clog.record("R6_true_duplicate", "investment_id",
+                clog.record("R8_true_duplicate", "investment_id",
                             df.at[idx, "investment_id"], "true_duplicate", "dropped",
                             f"same id+plant+description — keeping last")
             df = df.drop_duplicates(subset=dedup_cols, keep="last").copy()
             dropped = before - len(df)
-            log.info("  R6: removed %d true duplicate rows. Rows remaining: %d",
+            log.info("  R8: removed %d true duplicate rows. Rows remaining: %d",
                      dropped, len(df))
         else:
-            log.info("  R6: no true duplicates found")
+            log.info("  R8: no true duplicates found")
     else:
-        log.warning("  R6: could not find all dedup columns, skipping")
+        log.warning("  R8: could not find all dedup columns, skipping")
 
     log.info("Cleaning complete — %d rows, %d columns, %d changes logged",
              len(df), len(df.columns), clog.count)
