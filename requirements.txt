@@ -11,7 +11,7 @@ cryptography==46.0.6
 et_xmlfile==2.0.0
 gitdb==4.0.12
 GitPython==3.1.46
-great_expectations==1.15.1
+google-generativeai==0.8.3
 idna==3.11
 Jinja2==3.1.6
 jsonschema==4.26.0
