@@ -1403,20 +1403,19 @@ class InvestmentChatbot:
 
     def _llm_sql(self, question: str, lang: str = "english") -> str | None:
         """
-        Generate SQL via Ollama/Mistral for questions the rule-based
-        builder could not handle.
+        Generate SQL via LLM fallback for queries the rule-based builder
+        could not handle. Supports both Gemini (cloud) and Ollama (local).
 
-        Improvements vs v1:
-        - Language is passed explicitly so the model knows the input language
-        - Normalized (English-ish) version is included alongside the original
-          so Mistral does not have to translate German/Hindi alone
-        - Conversation history is trimmed to last 3 turns to stay within context
-        - Response is cleaned more aggressively before returning
+        Flow:
+          1. Build a shared prompt (schema + context + question)
+          2. Route to the active provider (self.llm_provider)
+          3. Clean and return the SQL, or None on failure
         """
-        if not self.ollama_available:
+        # No LLM available → rule-based only
+        if self.llm_provider == "none":
             return None
 
-        # Normalize the question (applies WORD_MAP/PHRASE_MAP translations)
+        # ── Build shared prompt ─────────────────────────────
         q_norm = normalise(question.lower().strip())
 
         # Last 3 turns of conversation context (6 messages max)
@@ -1444,25 +1443,49 @@ Normalised (hints): {q_norm}
 
 Write a single valid PostgreSQL SELECT query. Return ONLY the SQL, nothing else.
 SQL:"""
+
+        # ── Route to the active provider ────────────────────
+        raw_sql = None
         try:
-            r = requests.post(
-                "http://localhost:11434/api/generate",
-                json={"model": "mistral", "prompt": prompt, "stream": False},
-                timeout=30,
-            )
-            sql = r.json().get("response", "").strip()
-            # Strip markdown fences, leading/trailing noise
-            sql = re.sub(r"```sql|```", "", sql).strip()
-            sql = re.sub(r"^(sql|query)[:\s]+", "", sql, flags=re.I).strip()
-            # Take only the first statement
-            if ";" in sql:
-                sql = sql.split(";")[0].strip()
-            # Reject if model returned the unsupported sentinel or empty
-            if not sql or "unsupported" in sql.lower():
-                return None
-            return sql
-        except Exception:
+            if self.llm_provider == "gemini":
+                response = self.gemini_model.generate_content(
+                    prompt,
+                    generation_config={
+                        "temperature":        0.1,   # deterministic SQL
+                        "max_output_tokens":  512,
+                        "top_p":              0.9,
+                    },
+                )
+                raw_sql = (response.text or "").strip()
+
+            elif self.llm_provider == "ollama":
+                r = requests.post(
+                    "http://localhost:11434/api/generate",
+                    json={"model": "mistral", "prompt": prompt, "stream": False},
+                    timeout=30,
+                )
+                raw_sql = r.json().get("response", "").strip()
+
+        except Exception as e:
+            print(f"[LLM ERROR] {self.llm_provider}: {e}")
             return None
+
+        if not raw_sql:
+            return None
+
+        # ── Clean response (both providers) ─────────────────
+        sql = re.sub(r"```sql|```", "", raw_sql).strip()
+        sql = re.sub(r"^(sql|query)[:\s]+", "", sql, flags=re.I).strip()
+
+        # Take only the first statement
+        if ";" in sql:
+            sql = sql.split(";")[0].strip()
+
+        # Reject unsupported sentinel or empty result
+        if not sql or "unsupported" in sql.lower():
+            return None
+
+        return sql
 
     def _resolve_clarification(self, q: str) -> str | None:
         """
