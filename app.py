@@ -237,14 +237,17 @@ with st.sidebar:
 
     st.divider()
 
-    try:
-        import requests
-        requests.get("http://localhost:11434", timeout=2)
-        st.markdown("**LLM**")
-        st.caption("Ollama running — Mistral")
-    except Exception:
-        st.caption("Ollama not running")
-        st.caption("Start with: ollama serve")
+    st.markdown("**LLM**")
+    if is_cloud_env():
+        st.caption("Google Gemini 1.5 Flash")
+    else:
+        try:
+            import requests
+            requests.get("http://localhost:11434", timeout=2)
+            st.caption("Ollama running — Mistral")
+        except Exception:
+            st.caption("Ollama not running")
+            st.caption("Start with: `ollama serve`")
 
     st.divider()
     st.markdown("**Display**")
@@ -552,8 +555,9 @@ elif page == "Chatbot":
  
     chatbot = st.session_state.chatbot
  
-    if not chatbot.ollama_available:
-        st.warning("Ollama is not running. Start it with: `Gemini`")
+    # Show warning only on local when Ollama is down. On cloud we use Gemini.
+    if not is_cloud_env() and not chatbot.ollama_available:
+        st.warning("Ollama is not running. Start it with: `ollama serve`")
  
     # ── Process suggestion click ──────────────────────────
     if "pending" in st.session_state:
