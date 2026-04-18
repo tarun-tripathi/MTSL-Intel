@@ -3,13 +3,22 @@ Motherson Investment Intelligence — Chatbot v6
 
 """
 
+
 import hashlib
+import os
 import re
 from collections import deque
 
 import pandas as pd
 import requests
 from sqlalchemy import text
+
+# Optional: Gemini import (cloud only — local uses Ollama)
+try:
+    import google.generativeai as genai
+    _GEMINI_SDK_AVAILABLE = True
+except ImportError:
+    _GEMINI_SDK_AVAILABLE = False
 
 # ── CONSTANTS ──────────────────────────────────────────────
 VALID_COMPANIES  = {"SMP", "SMRC", "MDRSC", "Other"}
