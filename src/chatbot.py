@@ -1378,9 +1378,15 @@ class InvestmentChatbot:
         return os.getenv("GEMINI_API_KEY")
 
     def _check_ollama(self) -> bool:
+        """Check if Ollama is running locally with mistral available."""
         try:
-            r = requests.get("http://localhost:11434", timeout=2)
-            return r.status_code == 200
+            r = requests.get("http://localhost:11434/api/tags", timeout=2)
+            if r.status_code != 200:
+                return False
+            # Verify mistral model is pulled
+            models = r.json().get("models", [])
+            has_mistral = any("mistral" in m.get("name", "").lower() for m in models)
+            return has_mistral
         except Exception:
             return False
 
