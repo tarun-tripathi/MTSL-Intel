@@ -34,6 +34,12 @@ log = logging.getLogger("app")
 
 CHART_HEIGHT = 360
 
+def is_cloud_env() -> bool:
+    """True if running on Streamlit Cloud with Gemini API key configured."""
+    try:
+        return "GEMINI_API_KEY" in st.secrets
+    except Exception:
+        return False
 
 # ── Data loaders ─────────────────────────────────────────────
 
