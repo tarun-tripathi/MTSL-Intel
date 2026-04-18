@@ -1338,12 +1338,46 @@ def to_csv_bytes(df: pd.DataFrame) -> bytes | None:
 
 class InvestmentChatbot:
 
+    class InvestmentChatbot:
+
     def __init__(self, engine):
         self.engine           = engine
-        self.ollama_available = self._check_ollama()
         self.cache            = {}
         self._memory: deque   = deque(maxlen=10)
         self._pending         = None   # stores original_q waiting for year
+
+        # Detect which LLM is available — Gemini (cloud) or Ollama (local)
+        self.gemini_model     = None   # Gemini client (set below if available)
+        self.llm_provider     = "none" # "gemini" | "ollama" | "none"
+
+        # Try Gemini first (cloud environment)
+        gemini_key = self._get_gemini_key()
+        if _GEMINI_SDK_AVAILABLE and gemini_key:
+            try:
+                genai.configure(api_key=gemini_key)
+                self.gemini_model = genai.GenerativeModel("gemini-1.5-flash")
+                self.llm_provider = "gemini"
+            except Exception as e:
+                print(f"[LLM] Gemini setup failed: {e}")
+
+        # Fallback to Ollama (local environment)
+        if self.llm_provider == "none" and self._check_ollama():
+            self.llm_provider = "ollama"
+
+        # Backward-compat flag used by app.py for the sidebar warning banner
+        self.ollama_available = (self.llm_provider != "none")
+
+    def _get_gemini_key(self) -> str | None:
+        """Fetch Gemini API key from Streamlit secrets or environment."""
+        # Try Streamlit secrets first (cloud deployment)
+        try:
+            import streamlit as st
+            if "GEMINI_API_KEY" in st.secrets:
+                return st.secrets["GEMINI_API_KEY"]
+        except Exception:
+            pass
+        # Fallback to environment variable (local .env)
+        return os.getenv("GEMINI_API_KEY")
 
     def _check_ollama(self) -> bool:
         try:
