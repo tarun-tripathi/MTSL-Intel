@@ -1,8 +1,17 @@
 """
-Motherson Investment Intelligence — Chatbot v6
+Motherson Investment Intelligence — Chatbot v7 (cloud-only, Gemini)
 
+Changes in v7:
+  - Removed Ollama support (cloud deployment only)
+  - Added Gemini 1.5 Flash integration
+  - Fixed greeting handler (hi/hello/namaste/hallo)
+  - Fixed range queries ("FY X to FY Y", "2025-2030")
+  - Fixed "general" intent falsely asking for FY
+  - Added description keyword search (cooling, pump, etc.)
+  - Removed dead code (YEAR_PRESENT_RE, unreachable elif)
+  - Fixed \\b double-escape bug
+  - Updated SCHEMA to reflect row_id as PK
 """
-
 
 import hashlib
 import os
@@ -13,12 +22,13 @@ import pandas as pd
 import requests
 from sqlalchemy import text
 
-# Optional: Gemini import (cloud only — local uses Ollama)
+# Gemini SDK (cloud only)
 try:
     import google.generativeai as genai
     _GEMINI_SDK_AVAILABLE = True
 except ImportError:
     _GEMINI_SDK_AVAILABLE = False
+
 
 # ── CONSTANTS ──────────────────────────────────────────────
 VALID_COMPANIES  = {"SMP", "SMRC", "MDRSC", "Other"}
@@ -98,7 +108,7 @@ FY_COL_MAP = {
     "full plan":     "total_5y_k_eur",
 }
 
-# NEW-5: True 5-year total = sum of all 5 annual budget columns
+# True 5-year total = sum of all 5 annual budget columns
 TRUE_5Y_SQL = """
     SELECT
         SUM(budget_fy_2526 + budget_fy_2627 + plan_fy_2728 + plan_fy_2829 + plan_fy_2930)
@@ -113,18 +123,12 @@ BUDGET_COLS = {
     "avg_budget_k_eur","budget_eur_2526","budget_eur_2627",
 }
 
-# NEW-2: Intents that are FINANCIAL → always ask year before answering
-FINANCIAL_INTENTS = {
-    "by_company_budget", "by_region_budget", "by_plant",
-    "by_customer_budget", "top_n", "threshold", "zero_budget",
-    "compare", "capex",
-}
-
 # Intents that are STRUCTURAL → never ask year, use count/5y
 STRUCTURAL_INTENTS = {
-    "count_total", "count_by", "list_detail",
+    "count_total", "count_by", "list_detail", "greeting",
     "by_company_count", "by_region_count", "average",
     "cashflow", "tangible_split", "by_category",
+    "count_plants", "count_regions", "description_search",
 }
 
 
@@ -191,7 +195,7 @@ def _fy_label(fc: str, lang: str) -> str:
     return val
 
 
-# ── LANGUAGE DETECTION (per message — NEW-1) ───────────────
+# ── LANGUAGE DETECTION (per message) ───────────────────────
 
 HINDI_RE     = re.compile(r'[\u0900-\u097F]')
 GERMAN_WORDS = {
@@ -201,23 +205,44 @@ GERMAN_WORDS = {
     "zeige","zeig","höchste","niedrigste","anzahl","zukunft",
     "firma","gibt","projekte","viele","vergleich","zwischen",
     "gesamtbudget","investitionen","bitte","zeigen","alle",
-    "welches","wieviele","geschäftsjahr","laufendes","nächstes",
-    # Removed: "budget","plan","region","nach","mir" — these are also English
+    "welches","wieviele","geschäftsjahr","laufendes",
+    "hallo",
 }
 HINGLISH_WORDS = {
     "kitna","kitne","batao","bata","karo","kya","hai","hain",
     "ka","ke","ki","mein","se","aur","nahi","sab","dikhao",
     "bhai","yaar","ginti","sabse","zyada","saal","paisa",
     "dikha","compare","kaun","konsa","poora","kul","lagao",
+    "namaste","namaskar",
 }
 
 def detect_lang(text: str) -> str:
-    """NEW-1: detect language of THIS message — not locked to session."""
+    """Detect language of THIS message — not locked to session."""
     if HINDI_RE.search(text):        return "hindi"
     words = set(text.lower().split())
     if words & GERMAN_WORDS:         return "german"
     if words & HINGLISH_WORDS:       return "hinglish"
     return "english"
+
+
+# ── GREETING DETECTION (Fix #3) ────────────────────────────
+
+GREETING_PATTERNS = [
+    r'^hi+\s*!*\s*$',            # hi, hii, hiii
+    r'^hello+\s*!*\s*$',         # hello, helloo
+    r'^hey+\s*!*\s*$',           # hey, heyy
+    r'^yo+\s*!*\s*$',
+    r'^namaste+\s*!*\s*$',
+    r'^namaskar+\s*!*\s*$',
+    r'^hallo+\s*!*\s*$',         # German
+    r'^good\s*(morning|afternoon|evening|day|night)\s*!*\s*$',
+    r'^greetings+\s*!*\s*$',
+    r'^guten\s*(tag|morgen|abend)\s*!*\s*$',  # German greeting
+]
+
+def is_greeting(q: str) -> bool:
+    q_clean = q.lower().strip()
+    return any(re.match(p, q_clean) for p in GREETING_PATTERNS)
 
 
 # ── KEYWORD NORMALISER ─────────────────────────────────────
@@ -280,17 +305,87 @@ def normalise(text: str) -> str:
     return t
 
 
+# ── RANGE DETECTION (Fix #2) ───────────────────────────────
+
+def detect_year_range(q_raw: str) -> bool:
+    """
+    Detect if the query asks for a multi-year range covering all 5 fiscal years.
+    Returns True if we should treat this as a 5-year total query.
+
+    Examples that should return True:
+      - "investment for 2025-2030"
+      - "investment for 2025 to 2030"
+      - "FY 2025/26 to FY 2029/30"
+      - "from FY 2025 through FY 2029"
+      - "2025–2030" (en-dash)
+    """
+    ql = q_raw.lower().strip()
+
+    # Pattern 1: "2025-2030" or "2025–2030" (any dash/en-dash/em-dash)
+    if re.search(r'\b2025\s*[-–—]\s*2030\b', ql):
+        return True
+
+    # Pattern 2: "2025 to 2030" / "2025 through 2030"
+    if re.search(r'\b2025\s+(?:to|through|till|until|thru)\s+2030\b', ql):
+        return True
+
+    # Pattern 3: "FY 2025/26 to FY 2029/30" (covers the full 5-year span)
+    if re.search(r'fy\s*2025.{0,5}(?:to|through|till|until|thru|[-–—]).{0,10}fy\s*2029', ql):
+        return True
+    if re.search(r'2025/26.{0,5}(?:to|through|till|until|thru|[-–—]).{0,10}2029/30', ql):
+        return True
+
+    return False
+
+
 # ── MULTILINGUAL REPLY TEMPLATES ───────────────────────────
 
 def R(key: str, lang: str, **kwargs) -> str:
     templates = {
+        "greeting": {
+            "english":  (
+                "Hi! 👋 I'm your **MTSL Intel** assistant. I can help with Motherson "
+                "investment data — budgets, regions, companies, plants, customers, "
+                "and cashflows.\n\n"
+                "Try asking:\n"
+                "- *\"Total budget for FY 2025/26\"*\n"
+                "- *\"Top 5 plants by investment\"*\n"
+                "- *\"Compare SMP vs SMRC\"*"
+            ),
+            "hindi":    (
+                "नमस्ते! 👋 मैं आपका **MTSL Intel** सहायक हूँ। "
+                "Motherson निवेश डेटा — बजट, क्षेत्र, कंपनियाँ, प्लांट, ग्राहक, और कैशफ्लो — "
+                "में आपकी मदद कर सकता हूँ।\n\n"
+                "इन्हें आज़माएँ:\n"
+                "- *\"FY 2025/26 के लिए कुल बजट\"*\n"
+                "- *\"शीर्ष 5 प्लांट निवेश के हिसाब से\"*\n"
+                "- *\"SMP बनाम SMRC की तुलना\"*"
+            ),
+            "hinglish": (
+                "Hi bhai! 👋 Main aapka **MTSL Intel** assistant hoon. "
+                "Motherson investment data — budgets, regions, companies, plants, customers, "
+                "aur cashflows ke baare mein help kar sakta hoon.\n\n"
+                "Ye try karo:\n"
+                "- *\"FY 2025/26 ka total budget\"*\n"
+                "- *\"Top 5 plants investment ke hisaab se\"*\n"
+                "- *\"SMP vs SMRC compare\"*"
+            ),
+            "german": (
+                "Hallo! 👋 Ich bin Ihr **MTSL Intel** Assistent. Ich kann bei "
+                "Motherson-Investitionsdaten helfen — Budgets, Regionen, Unternehmen, "
+                "Werke, Kunden und Cashflows.\n\n"
+                "Probieren Sie:\n"
+                "- *\"Gesamtbudget für GJ 2025/26\"*\n"
+                "- *\"Top 5 Werke nach Investition\"*\n"
+                "- *\"SMP vs. SMRC vergleichen\"*"
+            ),
+        },
         "out_of_scope": {
             "english":  "I only answer questions about **Motherson investment data** — budgets, regions, companies, plants, customers and cashflows.",
             "hindi":    "मैं केवल **Motherson निवेश डेटा** के बारे में उत्तर दे सकता हूँ।",
             "hinglish": "Bhai, main sirf **Motherson investment data** ke baare mein bata sakta hoon!",
             "german":   "Ich beantworte nur Fragen zu **Motherson-Investitionsdaten**.",
         },
-        # NEW-2: Full year clarification with all 5 years + 5-year option
         "clarify_year": {
             "english":  (
                 "Which fiscal year?\n"
@@ -371,6 +466,12 @@ def R(key: str, lang: str, **kwargs) -> str:
             "hinglish": "Yeh query allowed nahi hai.",
             "german":   "Diese Abfrage ist nicht erlaubt.",
         },
+        "cant_answer": {
+            "english":  "I couldn't build a query for that. Try rephrasing — for example, mention a company (SMP, SMRC), a region (Germany, China), or a fiscal year (FY 2025/26).",
+            "hindi":    "मैं इसके लिए क्वेरी नहीं बना सका। कंपनी, क्षेत्र या वर्ष के साथ दोबारा पूछें।",
+            "hinglish": "Iska query nahi bana paaya. Company, region ya year ke saath dobara pucho.",
+            "german":   "Konnte keine Abfrage erstellen. Versuchen Sie es mit Unternehmen, Region oder Jahr.",
+        },
         "internal_error": {
             "english":  "An internal error occurred. Please try again.",
             "hindi":    "आंतरिक त्रुटि हुई। पुनः प्रयास करें।",
@@ -399,18 +500,6 @@ def is_oos(q: str) -> bool:
     return any(re.search(p, q) for p in OOS_PATTERNS)
 
 
-# Year detection regex — does query already specify a year?
-YEAR_PRESENT_RE = re.compile(
-    r'(this year|next year|is saal|agla saal|dieses jahr|current|going forward|future|'
-    r'all years?|across all|full 5|five year|5.year|5y|panch saal|poora|whole|'
-    r'2025/26|2026/27|2027/28|2028/29|2029/30|'
-    r'fy\s*20\d\d|fy\s*2[05][2-9][0-9]|'
-    r'\b202[5-9]\b|\b203[0-9]\b|'
-    r'\b2526\b|\b2627\b|\b2728\b|\b2829\b|\b2930\b)',
-    re.I
-)
-
-
 # ── SAFE SQL ───────────────────────────────────────────────
 
 BLOCKED_KW = ["DROP","DELETE","UPDATE","INSERT","ALTER","TRUNCATE","EXEC","GRANT","REVOKE"]
@@ -433,37 +522,38 @@ def sanitise(sql: str) -> str:
     return sql
 
 
-# ── LLM SCHEMA PROMPT ──────────────────────────────────────
+# ── LLM SCHEMA PROMPT (corrected: row_id is PK) ────────────
 
 SCHEMA = """
 You are an expert SQL writer for the Motherson Investment Intelligence PostgreSQL database.
 The user may ask in English, Hindi, Hinglish, or German.
-If the question is in German, translate it mentally to understand the intent, then write SQL.
-Always return ONLY raw SQL — no explanation, no markdown, no German text.
+If the question is in German or Hindi, translate mentally, then write SQL.
+Always return ONLY raw SQL — no explanation, no markdown, no commentary.
 
 === EXACT SCHEMA (never invent columns or tables) ===
 
-TABLE investments  (5,172 rows)
-  investment_id   INTEGER PRIMARY KEY
-  company         TEXT    -- values: 'SMP', 'SMRC', 'MDRSC', 'Other'
-  region          TEXT    -- values: 'Germany & EE', 'China', 'LATAM', 'Iberica',
-                          --         'France & North Africa', 'Mexico', 'USA'
-  plant           TEXT    -- e.g. 'CEFA Poland', 'SMRC Nitra', 'SMP Serbia'
+TABLE investments  (5,116 valid rows after validation)
+  row_id          SERIAL PRIMARY KEY
+  investment_id   INTEGER  -- per-plant counter, NOT unique across plants
+  company         TEXT     -- values: 'SMP', 'SMRC', 'MDRSC', 'Other'
+  region          TEXT     -- values: 'Germany & EE', 'China', 'LATAM', 'Iberica',
+                           --         'France & North Africa', 'Mexico', 'USA'
+  plant           TEXT     -- e.g. 'CEFA Poland', 'SMRC Nitra', 'SMP Serbia'
   investment_description  TEXT
   investment_category     TEXT  -- values: 'Customer projects new',
                                 --   'Customer projects repeat', 'Expansion',
                                 --   'Rationalization', 'Replacement',
                                 --   'Environment, Health & Safety (EHS)',
                                 --   'Others', 'Unknown'
-  customer        TEXT    -- e.g. 'BMW', 'Daimler', 'Volkswagen', 'Unknown'
+  customer        TEXT     -- e.g. 'BMW', 'Daimler', 'Volkswagen', 'Unknown'
   car_model       TEXT
-  source_of_funding TEXT  -- values: 'Own', 'Leasing', 'Borrowings', 'Customer', 'Other'
-  tangible_intangible TEXT  -- values: 'Tangible', 'Intangible'
-  productive_non_productive TEXT  -- values: 'Productive', 'Non Productive', 'Unknown'
-  mpp_value_level TEXT    -- values: '>=1m', '>=500k & <1m', '>=200k & <500k', '<200k'
+  source_of_funding TEXT   -- values: 'Own', 'Leasing', 'Borrowings', 'Customer', 'Other'
+  tangible_intangible TEXT -- values: 'Tangible', 'Intangible'
+  productive_non_productive TEXT -- values: 'Productive', 'Non Productive', 'Unknown'
+  mpp_value_level TEXT     -- values: '>=1m', '>=500k & <1m', '>=200k & <500k', '<200k'
   local_currency  TEXT
 
-TABLE investment_budget  (one row per investment)
+TABLE investment_budget  (one row per investment; linked by row_id)
   row_id          INTEGER  (UNIQUE, FK → investments.row_id)
   -- Annual budgets in k EUR (thousands of euros):
   budget_fy_2526  NUMERIC  -- FY 2025/26 = "this year" / "aktuelles Jahr" / "is saal"
@@ -472,9 +562,6 @@ TABLE investment_budget  (one row per investment)
   plan_fy_2829    NUMERIC  -- FY 2028/29
   plan_fy_2930    NUMERIC  -- FY 2029/30
   total_5y_k_eur  NUMERIC  -- pre-calculated 5-year total
-  budget_eur_2526, budget_eur_2627, plan_eur_2728, plan_eur_2829, plan_eur_2930, total_eur_5y
-  -- Quarterly: budget_q2_2025, budget_q3_2025, budget_q4_2025, budget_q1_2026,
-  --            budget_q2_2026, budget_q3_2026, budget_q4_2026, budget_q1_2027
 
 TABLE investment_monthly_cashflow
   row_id          INTEGER  (FK → investments.row_id)
@@ -484,14 +571,17 @@ TABLE investment_monthly_cashflow
 
 === STRICT RULES ===
 1. All budget values are in k EUR (thousands). SUM(budget_fy_2526) = total in k EUR.
-2. Always JOIN investments i JOIN investment_budget b ON i.row_id = b.row_id
-3. COUNT(*) for counting investments — never SUM for a count
-4. Use ILIKE for text search: LOWER(i.plant) ILIKE '%poland%'
-5. Only SELECT statements — never INSERT/UPDATE/DELETE/DROP/ALTER/CREATE
-6. Return ONLY the raw SQL query — no explanation, no markdown fences, no commentary
-7. No "actual spend", "realized", "disbursed" column exists — do not invent one
-8. No "status", "approved", "started", "completed" column exists — do not invent one
-9. If you cannot write a valid query, return exactly: SELECT 'unsupported' AS error
+2. Always JOIN on row_id: investments i JOIN investment_budget b ON i.row_id = b.row_id
+3. NEVER join on investment_id — it is NOT unique (it repeats across plants).
+4. COUNT(*) for counting investments — never SUM for a count.
+5. Use ILIKE for text search: i.investment_description ILIKE '%cooling%'
+6. For descriptions, search BOTH English and German terms where applicable
+   (e.g. "cooling" → also 'kühlung' or 'kuehlung').
+7. Only SELECT statements — never INSERT/UPDATE/DELETE/DROP/ALTER/CREATE.
+8. Return ONLY the raw SQL query — no explanation, no markdown fences.
+9. No "actual spend", "realized", "disbursed" column exists — do not invent one.
+10. No "status", "approved", "started", "completed" column exists — do not invent one.
+11. If you cannot write a valid query, return exactly: SELECT 'unsupported' AS error
 
 === FEW-SHOT EXAMPLES ===
 
@@ -504,6 +594,12 @@ SQL: SELECT COUNT(*) AS investment_count FROM investments WHERE region = 'China'
 Q: Show top 5 plants by budget this year
 SQL: SELECT i.plant, SUM(b.budget_fy_2526) AS budget_k_eur FROM investments i JOIN investment_budget b ON i.row_id = b.row_id GROUP BY i.plant ORDER BY budget_k_eur DESC LIMIT 5
 
+Q: List investments with the word pump
+SQL: SELECT i.company, i.region, i.plant, i.investment_description, b.total_5y_k_eur FROM investments i JOIN investment_budget b ON i.row_id = b.row_id WHERE i.investment_description ILIKE '%pump%' ORDER BY b.total_5y_k_eur DESC NULLS LAST
+
+Q: Show investments containing cooling
+SQL: SELECT i.company, i.region, i.plant, i.investment_description, b.total_5y_k_eur FROM investments i JOIN investment_budget b ON i.row_id = b.row_id WHERE i.investment_description ILIKE '%cooling%' OR i.investment_description ILIKE '%kühlung%' OR i.investment_description ILIKE '%kuehlung%' ORDER BY b.total_5y_k_eur DESC NULLS LAST
+
 Q: Wie hoch ist das Gesamtbudget für die Region Deutschland?
 SQL: SELECT SUM(b.budget_fy_2526) AS total_k_eur FROM investments i JOIN investment_budget b ON i.row_id = b.row_id WHERE i.region = 'Germany & EE'
 
@@ -512,30 +608,40 @@ SQL: SELECT SUM(b.budget_fy_2526 + b.budget_fy_2627 + b.plan_fy_2728 + b.plan_fy
 
 Q: Which investment categories exist and how many projects each?
 SQL: SELECT investment_category, COUNT(*) AS project_count FROM investments GROUP BY investment_category ORDER BY project_count DESC
-
-Q: Wie viele Investitionen hat SMRC insgesamt?
-SQL: SELECT COUNT(*) AS investment_count FROM investments WHERE company = 'SMRC'
 """
+
+
+# ── DESCRIPTION SEARCH KEYWORDS (Fix #12) ──────────────────
+# Common nouns users ask about that should trigger description search.
+# (Deliberately minimal — falls back to Gemini for anything else.)
+DESCRIPTION_KEYWORDS = {
+    "pump", "pumps", "cooling", "heating", "welding", "robot", "robotics",
+    "injection", "molding", "molding machine", "conveyor", "machine",
+    "assembly", "painting", "laser", "press", "oven", "furnace",
+    "compressor", "turbine", "automation", "forklift", "crane",
+    "chiller", "dryer", "mixer", "hydraulic", "pneumatic",
+}
 
 
 # ── INTENT PARSER ──────────────────────────────────────────
 
 def parse_intent(q_norm: str, q_raw: str) -> dict:
     intent = {
-        "company":         None,
-        "region":          None,
-        "region2":         None,   # second region for compare queries
-        "customer":        None,
-        "category":        None,
-        "plant_search":    None,
-        "fy_col":          None,
-        "fy_col2":         None,
-        "compare":         False,
-        "top_n":           None,
-        "threshold":       None,
-        "zero_budget":     False,
-        "intent_type":     "general",
-        "requested_chart": None,
+        "company":           None,
+        "region":            None,
+        "region2":           None,
+        "customer":          None,
+        "category":          None,
+        "plant_search":      None,
+        "description_term":  None,    # NEW: free-text keyword for description search
+        "fy_col":            None,
+        "fy_col2":           None,
+        "compare":           False,
+        "top_n":             None,
+        "threshold":         None,
+        "zero_budget":       False,
+        "intent_type":       "general",
+        "requested_chart":   None,
     }
 
     # Company
@@ -550,8 +656,7 @@ def parse_intent(q_norm: str, q_raw: str) -> dict:
             intent["region"] = rv
             break
 
-    # NEW-3: plant-level search — detect plant keywords not covered by region map
-    # e.g. "SMP Serbia" → company=SMP, plant_search=serbia
+    # Plant-level search
     plant_keywords = [
         "serbia","neustadt","oldenburg","gottingen","kaluga","nitra",
         "cpat","gondecourt","palmela","zitlaltepec","tetouan","boetzingen",
@@ -574,9 +679,32 @@ def parse_intent(q_norm: str, q_raw: str) -> dict:
             intent["category"] = cv
             break
 
-    # NEW-4: zero budget detection
+    # Zero budget detection
     if re.search(r'\b(zero budget|no budget|null budget|zero.{0,10}budget|budget.{0,10}zero)\b', q_norm):
         intent["zero_budget"] = True
+
+    # Description keyword search (Fix #6)
+    # Strategy: prefer matching a known DESCRIPTION_KEYWORDS term anywhere in the
+    # query first (e.g. "pump", "cooling"). Fall back to extracting a noun that
+    # follows an explicit marker ("word X", "containing X").
+    _DESC_STOPWORDS = {
+        "the","a","an","total","budget","high","low","many","much",
+        "description","descriptions","word","words","keyword","keywords",
+        "term","terms","name","names","text","field","fields",
+        "investment","investments","project","projects",
+    }
+    for kw in DESCRIPTION_KEYWORDS:
+        if re.search(r'\b' + re.escape(kw) + r'\b', q_norm):
+            intent["description_term"] = kw
+            break
+    if not intent["description_term"]:
+        # "word X", "containing X", "contains X", "with X" — but skip stopwords,
+        # and keep scanning if the first capture is a stopword.
+        for m in re.finditer(r'\b(?:word|containing|contains|with)\s+(\w+)\b', q_norm):
+            term = m.group(1)
+            if term not in _DESC_STOPWORDS and len(term) >= 3:
+                intent["description_term"] = term
+                break
 
     # Fiscal year — scan FY_COL_MAP tokens
     for token, col in FY_COL_MAP.items():
@@ -594,6 +722,10 @@ def parse_intent(q_norm: str, q_raw: str) -> dict:
         intent["fy_col"] = "plan_fy_2829"
     elif re.search(r'2029/30|fy\s*2029\b', q_raw, re.I):
         intent["fy_col"] = "plan_fy_2930"
+
+    # Year range detection (Fix #2) — overrides single-FY detection
+    if detect_year_range(q_raw):
+        intent["fy_col"] = "total_5y_k_eur"
 
     # Explicit chart type
     if re.search(r'\bbar chart\b', q_norm):    intent["requested_chart"] = "bar"
@@ -647,7 +779,10 @@ def parse_intent(q_norm: str, q_raw: str) -> dict:
         intent["threshold"] = val
 
     # ── Intent type ────────────────────────────────────────
-    if re.search(r'\b(capex)\b', q_norm):
+    # Description search takes priority — user explicitly mentioned a keyword
+    if intent["description_term"]:
+        intent["intent_type"] = "description_search"
+    elif re.search(r'\b(capex)\b', q_norm):
         intent["intent_type"] = "capex"
     elif intent["zero_budget"]:
         intent["intent_type"] = "zero_budget"
@@ -657,7 +792,6 @@ def parse_intent(q_norm: str, q_raw: str) -> dict:
         intent["intent_type"] = "top_n"
     elif intent["threshold"]:
         intent["intent_type"] = "threshold"
-    # NEW-2: split company/region intent into budget vs count
     elif re.search(r'\b(per company|how many.{0,20}compan|count.{0,20}compan|compan.{0,20}count)\b', q_norm):
         intent["intent_type"] = "by_company_count"
     elif re.search(r'\b(per region|how many.{0,20}region|count.{0,20}region)\b', q_norm):
@@ -684,42 +818,39 @@ def parse_intent(q_norm: str, q_raw: str) -> dict:
     # Structural counts
     elif re.search(r'\b(how many|count|kitne|anzahl|ginti)\b', q_norm) and \
          not re.search(r'\b(budget|eur|spend)\b', q_norm):
-        # Special case: count distinct plants/regions/companies
         if re.search(r'\bplant', q_norm):
             intent["intent_type"] = "count_plants"
-        elif re.search(r'\bregion', q_norm) and not co and not intent["region"]:
+        elif re.search(r'\bregion', q_norm) and not intent["company"] and not intent["region"]:
             intent["intent_type"] = "count_regions"
-        elif re.search(r'\bcompan', q_norm) and not co:
+        elif re.search(r'\bcompan', q_norm) and not intent["company"]:
             intent["intent_type"] = "by_company_count"
         else:
             intent["intent_type"] = "count_total"
     # List detail — only when a filter is present
     elif re.search(r'\b(show|list|display|give me)\b', q_norm) and \
          re.search(r'\b(all\s+)?(investments?|projects?)\b', q_norm) and \
-         (intent["region"] or intent["company"] or intent["customer"] or intent["category"]):
+         (intent["region"] or intent["company"] or intent["customer"] or intent["category"] or intent["plant_search"]):
         intent["intent_type"] = "list_detail"
 
     return intent
 
 
-# ── NEEDS YEAR? ────────────────────────────────────────────
+# ── NEEDS YEAR? (Fix #5: removed "general" from financial set) ─
 
 def needs_year(intent: dict) -> bool:
     """
-    NEW-2: Returns True if this intent is FINANCIAL and needs year clarification.
-    Returns False if STRUCTURAL (use count/overall).
+    Returns True ONLY for intents that are explicitly FINANCIAL and
+    have no fiscal year yet. "general" is no longer forced to ask for a year —
+    build_sql either handles it or we fall through to LLM.
     """
     itype = intent["intent_type"]
-    # Already has year → no clarification needed
     if intent["fy_col"] is not None:
         return False
-    # Structural intents → never need year
     if itype in STRUCTURAL_INTENTS:
         return False
-    # Financial intents → need year
     financial = {
-        "by_company_budget","by_region_budget","by_plant","by_customer_budget",
-        "top_n","threshold","zero_budget","compare","capex","general",
+        "by_company_budget", "by_region_budget", "by_plant", "by_customer_budget",
+        "top_n", "threshold", "zero_budget", "compare", "capex",
     }
     return itype in financial
 
@@ -732,15 +863,12 @@ _ALLOWED_FY_COLS = {
     "plan_fy_2829",   "plan_fy_2930",   "total_5y_k_eur",
 }
 
-def build_sql(intent: dict, q_norm: str, q_raw: str) -> tuple[str, dict] | None:
+def build_sql(intent: dict, q_norm: str, q_raw: str):
     """
     Returns (sql_string, params_dict) or None.
     All user-supplied filter values use SQLAlchemy bound parameters (:name)
     so they are never interpolated into the query string.
-    Column names (fiscal-year columns) are validated against a whitelist
-    before interpolation — they are identifiers, not values.
     """
-    # Validate and resolve fiscal-year column names (identifiers, not values)
     raw_fc  = intent["fy_col"] or "budget_fy_2526"
     raw_fc2 = intent["fy_col2"]
     fc  = raw_fc  if raw_fc  in _ALLOWED_FY_COLS else "budget_fy_2526"
@@ -751,15 +879,12 @@ def build_sql(intent: dict, q_norm: str, q_raw: str) -> tuple[str, dict] | None:
     cust  = intent["customer"]
     cat   = intent["category"]
     ps    = intent.get("plant_search")
+    dt    = intent.get("description_term")
     n     = intent["top_n"]
     thr   = intent["threshold"]
     itype = intent["intent_type"]
 
     def where(extras=None):
-        """
-        Returns (where_clause_str, params_dict).
-        User values → bound params.  extras → safe hardcoded strings only.
-        """
         conds  = []
         params = {}
         if co:
@@ -777,15 +902,31 @@ def build_sql(intent: dict, q_norm: str, q_raw: str) -> tuple[str, dict] | None:
         if cat:
             conds.append("i.investment_category = :category")
             params["category"] = cat
+        if dt:
+            conds.append("LOWER(i.investment_description) LIKE :desc_term")
+            params["desc_term"] = f"%{dt.lower()}%"
         if extras:
-            conds.extend(extras)   # extras are hardcoded safe strings, not user input
+            conds.extend(extras)
         clause = ("WHERE " + " AND ".join(conds)) if conds else ""
         return clause, params
 
     join = "FROM investments i JOIN investment_budget b ON i.row_id = b.row_id"
     lim  = f"LIMIT {n}" if n else ""
 
-    # NEW-4: zero budget
+    # Description search (Fix #6)
+    if itype == "description_search":
+        w, p = where()
+        # Use fc column or 5y total depending on what user asked
+        budget_expr = f"b.{fc}" if fc != "total_5y_k_eur" else "b.total_5y_k_eur"
+        return f"""
+            SELECT i.company, i.region, i.plant,
+                   i.investment_description, i.customer,
+                   {budget_expr} AS budget_k_eur, b.total_5y_k_eur
+            {join} {w}
+            ORDER BY b.total_5y_k_eur DESC NULLS LAST LIMIT 100
+        """, p
+
+    # Zero budget
     if itype == "zero_budget":
         w, p = where([f"b.{fc} = 0"])
         return f"""
@@ -816,7 +957,7 @@ def build_sql(intent: dict, q_norm: str, q_raw: str) -> tuple[str, dict] | None:
 
     # Structural: total count
     if itype == "count_total":
-        if co or reg or cust or cat:   # FIX: added cat
+        if co or reg or cust or cat or ps:
             w, p = where()
             return f"SELECT COUNT(*) AS investment_count FROM investments i {w}", p
         return "SELECT COUNT(*) AS total_investments FROM investments", {}
@@ -829,7 +970,7 @@ def build_sql(intent: dict, q_norm: str, q_raw: str) -> tuple[str, dict] | None:
     if itype == "by_region_count":
         return "SELECT region, COUNT(*) AS investment_count FROM investments GROUP BY region ORDER BY investment_count DESC", {}
 
-    # Structural: average
+    # Average
     if itype == "average":
         if re.search(r'region', q_norm):
             return f"""
@@ -882,7 +1023,7 @@ def build_sql(intent: dict, q_norm: str, q_raw: str) -> tuple[str, dict] | None:
             FROM investments i JOIN investment_budget b ON i.row_id = b.row_id {w}
         """, p
 
-    # Compare: two customers (from KNOWN_CUSTOMERS whitelist — safe to interpolate labels)
+    # Compare: two customers
     if itype == "compare" and cust:
         first, second = cust, None
         for name in KNOWN_CUSTOMERS:
@@ -901,7 +1042,24 @@ def build_sql(intent: dict, q_norm: str, q_raw: str) -> tuple[str, dict] | None:
                 FROM investments i JOIN investment_budget b ON i.row_id = b.row_id
             """, {"cust1": f"%{first}%", "cust2": f"%{second}%"}
 
-    # Threshold (thr is a float — safe to interpolate)
+    # Compare: two companies
+    if itype == "compare" and co:
+        first_co, second_co = co, None
+        for c in ["SMP","SMRC","MDRSC"]:
+            if c != first_co and re.search(r'\b'+c+r'\b', q_raw, re.I):
+                second_co = c; break
+        if second_co:
+            return f"""
+                SELECT :co1 AS company, SUM(b.{fc}) AS budget_k_eur, COUNT(*) AS project_count
+                FROM investments i JOIN investment_budget b ON i.row_id = b.row_id
+                WHERE i.company = :co1
+                UNION ALL
+                SELECT :co2, SUM(b.{fc}), COUNT(*)
+                FROM investments i JOIN investment_budget b ON i.row_id = b.row_id
+                WHERE i.company = :co2
+            """, {"co1": first_co, "co2": second_co}
+
+    # Threshold
     if itype == "threshold" and thr is not None:
         w, p = where([f"b.{fc} > {float(thr)}"])
         return f"""
@@ -924,28 +1082,28 @@ def build_sql(intent: dict, q_norm: str, q_raw: str) -> tuple[str, dict] | None:
     # Top-N
     if itype == "top_n":
         w, p = where()
-        if re.search(r'compan', q_norm):
-            return f"""
-                SELECT i.company, SUM(b.{fc}) AS budget_k_eur, COUNT(*) AS project_count
-                {join} {w} GROUP BY i.company ORDER BY budget_k_eur DESC {lim or 'LIMIT 10'}
-            """, p
-        if re.search(r'region', q_norm):
-            return f"""
-                SELECT i.region, SUM(b.{fc}) AS budget_k_eur, COUNT(*) AS project_count
-                {join} {w} GROUP BY i.region ORDER BY budget_k_eur DESC {lim or 'LIMIT 10'}
-            """, p
-        if re.search(r'plant', q_norm):
-            return f"""
-                SELECT i.plant, SUM(b.{fc}) AS budget_k_eur, COUNT(*) AS project_count
-                {join} {w} GROUP BY i.plant ORDER BY budget_k_eur DESC {lim or 'LIMIT 10'}
-            """, p
-        if re.search(r'customer', q_norm):
+        if re.search(r'\bcustomer', q_norm):
             extra = "AND i.customer IS NOT NULL AND i.customer != 'Unknown'"
             clause = f"{w} {extra}" if w else f"WHERE i.customer IS NOT NULL AND i.customer != 'Unknown'"
             return f"""
                 SELECT i.customer, SUM(b.{fc}) AS budget_k_eur, COUNT(*) AS project_count
                 {join} {clause}
                 GROUP BY i.customer ORDER BY budget_k_eur DESC {lim or 'LIMIT 10'}
+            """, p
+        if re.search(r'\bcompan', q_norm):
+            return f"""
+                SELECT i.company, SUM(b.{fc}) AS budget_k_eur, COUNT(*) AS project_count
+                {join} {w} GROUP BY i.company ORDER BY budget_k_eur DESC {lim or 'LIMIT 10'}
+            """, p
+        if re.search(r'\bregion', q_norm):
+            return f"""
+                SELECT i.region, SUM(b.{fc}) AS budget_k_eur, COUNT(*) AS project_count
+                {join} {w} GROUP BY i.region ORDER BY budget_k_eur DESC {lim or 'LIMIT 10'}
+            """, p
+        if re.search(r'\bplant', q_norm):
+            return f"""
+                SELECT i.plant, SUM(b.{fc}) AS budget_k_eur, COUNT(*) AS project_count
+                {join} {w} GROUP BY i.plant ORDER BY budget_k_eur DESC {lim or 'LIMIT 10'}
             """, p
         return f"""
             SELECT i.plant, i.company, i.region, i.investment_category,
@@ -997,27 +1155,25 @@ def build_sql(intent: dict, q_norm: str, q_raw: str) -> tuple[str, dict] | None:
 
     # Specific company + region
     if co and reg:
-        _, p = where()
         return f"""
             SELECT i.company, i.region, COUNT(*) AS project_count,
                    SUM(b.{fc}) AS budget_k_eur, SUM(b.total_5y_k_eur) AS total_5y_k_eur
             {join} WHERE i.company = :company AND i.region = :region
             GROUP BY i.company, i.region
-        """, p
+        """, {"company": co, "region": reg}
 
-    # Specific company
+    # Specific company (Fix #7: single-escape \b, was \\b)
     if co:
         if cat:
-            _, p = where()
             return f"""
                 SELECT i.company, i.investment_category, COUNT(*) AS project_count,
                        SUM(b.{fc}) AS budget_k_eur, SUM(b.total_5y_k_eur) AS total_5y_k_eur
                 FROM investments i JOIN investment_budget b ON i.row_id = b.row_id
                 WHERE i.company = :company AND i.investment_category = :category
                 GROUP BY i.company, i.investment_category ORDER BY budget_k_eur DESC
-            """, p
+            """, {"company": co, "category": cat}
         # If asking for a single total (not breakdown), return one row
-        if re.search(r'\\b(total|sum|gesamt|kul|overall|how much|kitna|budget)\\b', q_norm) and itype == "general":
+        if re.search(r'\b(total|sum|gesamt|kul|overall|how much|kitna|budget)\b', q_norm):
             return f"""
                 SELECT i.company,
                        SUM(b.{fc}) AS budget_k_eur,
@@ -1036,14 +1192,13 @@ def build_sql(intent: dict, q_norm: str, q_raw: str) -> tuple[str, dict] | None:
     # Specific region
     if reg:
         if cat:
-            _, p = where()
             return f"""
                 SELECT i.region, i.investment_category, COUNT(*) AS project_count,
                        SUM(b.{fc}) AS budget_k_eur
                 FROM investments i JOIN investment_budget b ON i.row_id = b.row_id
                 WHERE i.region = :region AND i.investment_category = :category
                 GROUP BY i.region, i.investment_category ORDER BY budget_k_eur DESC
-            """, p
+            """, {"region": reg, "category": cat}
         return f"""
             SELECT i.region, i.company, COUNT(*) AS project_count,
                    SUM(b.{fc}) AS budget_k_eur, SUM(b.total_5y_k_eur) AS total_5y_k_eur
@@ -1097,7 +1252,7 @@ def build_sql(intent: dict, q_norm: str, q_raw: str) -> tuple[str, dict] | None:
             {join} GROUP BY i.source_of_funding ORDER BY budget_k_eur DESC
         """, {}
 
-    # Simple total budget
+    # Simple total budget (only when explicit)
     if re.search(r'\b(total|sum|gesamt|kul|overall|budget)\b', q_norm):
         return f"SELECT SUM({fc}) AS total_k_eur FROM investment_budget", {}
 
@@ -1105,10 +1260,7 @@ def build_sql(intent: dict, q_norm: str, q_raw: str) -> tuple[str, dict] | None:
     if re.search(r'\b(how many|count|kitne)\b', q_norm):
         return "SELECT COUNT(*) AS total_investments FROM investments", {}
 
-    # Fallback for explicit non-current FY
-    if fc in ("budget_fy_2627", "plan_fy_2728", "plan_fy_2829", "plan_fy_2930"):
-        return f"SELECT SUM({fc}) AS total_k_eur FROM investment_budget", {}
-
+    # No rule matched — let LLM try
     return None
 
 
@@ -1123,11 +1275,10 @@ def generate_insight(df: pd.DataFrame, intent: dict, q_norm: str, lang: str) -> 
         fc    = intent.get("fy_col") or "budget_fy_2526"
         fyl   = _fy_label(fc, lang)
 
-        # Find best numeric col — priority: financial/budget cols FIRST, count cols as fallback
+        # Find best numeric col — financial first, count as fallback
         num_col = next((c for c in cols if any(x in c.lower() for x in
                         ["budget","plan","total","eur","amount","value","avg"]
                         ) and pd.to_numeric(df[c], errors="coerce").notna().any()), None)
-        # Fallback to count column only if no financial column found
         if num_col is None:
             num_col = next((c for c in cols if "count" in c.lower()
                            and pd.to_numeric(df[c], errors="coerce").notna().any()), None)
@@ -1152,11 +1303,11 @@ def generate_insight(df: pd.DataFrame, intent: dict, q_norm: str, lang: str) -> 
             if "count" in col or "investment" in col:
                 n = int(float(val))
                 return {
-                    "english":  f"**{n:,}** investments in total.",
-                    "hindi":    f"कुल **{n:,}** निवेश हैं।",
-                    "hinglish": f"Total **{n:,}** investments hain!",
-                    "german":   f"Insgesamt **{n:,}** Investitionen.",
-                }.get(lang, f"**{n:,}** investments in total.")
+                    "english":  f"**{n:,}** investments found.",
+                    "hindi":    f"कुल **{n:,}** निवेश मिले।",
+                    "hinglish": f"Total **{n:,}** investments mile!",
+                    "german":   f"Insgesamt **{n:,}** Investitionen gefunden.",
+                }.get(lang, f"**{n:,}** investments found.")
             else:
                 fv = format_large_number(val)
                 return {
@@ -1178,8 +1329,8 @@ def generate_insight(df: pd.DataFrame, intent: dict, q_norm: str, lang: str) -> 
         total    = numeric.sum()
         top_row  = df.iloc[0]
         top_val  = float(top_row[num_col]) if num_col in top_row.index else 0
-        # Format period_date as "Month YYYY" for cashflow queries
-        def _fmt_date(val: str) -> str:
+
+        def _fmt_date(val):
             try:
                 from datetime import datetime
                 return datetime.strptime(str(val), "%Y-%m-%d").strftime("%B %Y")
@@ -1246,7 +1397,6 @@ def generate_insight(df: pd.DataFrame, intent: dict, q_norm: str, lang: str) -> 
             v2 = float(df.iloc[1][num_col])
             l1 = str(df.iloc[0][cat_col])
             l2 = str(df.iloc[1][cat_col])
-            # Map raw DB column names to human-readable FY labels
             l1 = _FY_LABEL_MAP.get(l1, l1)
             l2 = _FY_LABEL_MAP.get(l2, l2)
             diff = abs(v1 - v2)
@@ -1277,11 +1427,9 @@ def build_chart(df: pd.DataFrame, intent: dict):
     try:
         if df is None or len(df) == 0 or len(df.columns) < 2:
             return None
-        # No chart for raw list_detail
-        if intent.get("intent_type") == "list_detail":
+        if intent.get("intent_type") in ("list_detail", "description_search"):
             return None
 
-        # Find varying categorical label col
         cat_col = None
         for c in df.columns:
             if pd.to_numeric(df[c], errors="coerce").notna().all(): continue
@@ -1326,7 +1474,7 @@ def build_chart(df: pd.DataFrame, intent: dict):
 
 # ── CSV EXPORT ─────────────────────────────────────────────
 
-def to_csv_bytes(df: pd.DataFrame) -> bytes | None:
+def to_csv_bytes(df: pd.DataFrame):
     if df is None or df.empty: return None
     try:
         return df.to_csv(index=False).encode("utf-8")
@@ -1339,60 +1487,42 @@ def to_csv_bytes(df: pd.DataFrame) -> bytes | None:
 class InvestmentChatbot:
 
     def __init__(self, engine):
-        self.engine           = engine
-        self.cache            = {}
-        self._memory: deque   = deque(maxlen=10)
-        self._pending         = None   # stores original_q waiting for year
+        self.engine      = engine
+        self.cache       = {}
+        self._memory     = deque(maxlen=10)
+        self._pending    = None
 
-        # Detect which LLM is available — Gemini (cloud) or Ollama (local)
-        self.gemini_model     = None   # Gemini client (set below if available)
-        self.llm_provider     = "none" # "gemini" | "ollama" | "none"
+        # Gemini setup
+        self.gemini_model = None
+        self.llm_provider = "none"
 
-        # Try Gemini first (cloud environment)
         gemini_key = self._get_gemini_key()
         if _GEMINI_SDK_AVAILABLE and gemini_key:
             try:
                 genai.configure(api_key=gemini_key)
                 self.gemini_model = genai.GenerativeModel("gemini-1.5-flash")
                 self.llm_provider = "gemini"
+                print("[LLM] Gemini 1.5 Flash initialized")
             except Exception as e:
                 print(f"[LLM] Gemini setup failed: {e}")
 
-        # Fallback to Ollama (local environment)
-        if self.llm_provider == "none" and self._check_ollama():
-            self.llm_provider = "ollama"
-
-        # Backward-compat flag used by app.py for the sidebar warning banner
+        # Backward-compat flag used by app.py
         self.ollama_available = (self.llm_provider != "none")
 
-    def _get_gemini_key(self) -> str | None:
+    def _get_gemini_key(self):
         """Fetch Gemini API key from Streamlit secrets or environment."""
-        # Try Streamlit secrets first (cloud deployment)
         try:
             import streamlit as st
             if "GEMINI_API_KEY" in st.secrets:
                 return st.secrets["GEMINI_API_KEY"]
         except Exception:
             pass
-        # Fallback to environment variable (local .env)
         return os.getenv("GEMINI_API_KEY")
 
-    def _check_ollama(self) -> bool:
-        """Check if Ollama is running locally with mistral available."""
-        try:
-            r = requests.get("http://localhost:11434/api/tags", timeout=2)
-            if r.status_code != 200:
-                return False
-            # Verify mistral model is pulled
-            models = r.json().get("models", [])
-            has_mistral = any("mistral" in m.get("name", "").lower() for m in models)
-            return has_mistral
-        except Exception:
-            return False
+    def _key(self, q):
+        return hashlib.md5(q.lower().strip().encode()).hexdigest()
 
-    def _key(self, q): return hashlib.md5(q.lower().strip().encode()).hexdigest()
-
-    def _run_sql(self, sql: str, params: dict | None = None):
+    def _run_sql(self, sql: str, params=None):
         try:
             with self.engine.connect() as conn:
                 res = conn.execute(text(sql), params or {})
@@ -1401,24 +1531,13 @@ class InvestmentChatbot:
             print(f"[SQL ERROR] {e}\n{sql}")
             return None
 
-    def _llm_sql(self, question: str, lang: str = "english") -> str | None:
-        """
-        Generate SQL via LLM fallback for queries the rule-based builder
-        could not handle. Supports both Gemini (cloud) and Ollama (local).
-
-        Flow:
-          1. Build a shared prompt (schema + context + question)
-          2. Route to the active provider (self.llm_provider)
-          3. Clean and return the SQL, or None on failure
-        """
-        # No LLM available → rule-based only
-        if self.llm_provider == "none":
+    def _llm_sql(self, question: str, lang: str = "english"):
+        """Generate SQL via Gemini for queries the rule-based builder missed."""
+        if self.llm_provider == "none" or not self.gemini_model:
             return None
 
-        # ── Build shared prompt ─────────────────────────────
         q_norm = normalise(question.lower().strip())
 
-        # Last 3 turns of conversation context (6 messages max)
         recent = list(self._memory)[-6:]
         ctx = "\n".join(
             f"{'User' if m['role']=='user' else 'Bot'}: {m['content']}"
@@ -1444,65 +1563,46 @@ Normalised (hints): {q_norm}
 Write a single valid PostgreSQL SELECT query. Return ONLY the SQL, nothing else.
 SQL:"""
 
-        # ── Route to the active provider ────────────────────
         raw_sql = None
         try:
-            if self.llm_provider == "gemini":
-                response = self.gemini_model.generate_content(
-                    prompt,
-                    generation_config={
-                        "temperature":        0.1,   # deterministic SQL
-                        "max_output_tokens":  512,
-                        "top_p":              0.9,
-                    },
-                )
-                raw_sql = (response.text or "").strip()
-
-            elif self.llm_provider == "ollama":
-                r = requests.post(
-                    "http://localhost:11434/api/generate",
-                    json={"model": "mistral", "prompt": prompt, "stream": False},
-                    timeout=30,
-                )
-                raw_sql = r.json().get("response", "").strip()
-
+            response = self.gemini_model.generate_content(
+                prompt,
+                generation_config={
+                    "temperature":       0.1,
+                    "max_output_tokens": 512,
+                    "top_p":             0.9,
+                },
+            )
+            raw_sql = (response.text or "").strip()
+            print(f"[LLM] Gemini returned SQL (len={len(raw_sql)})")
         except Exception as e:
-            print(f"[LLM ERROR] {self.llm_provider}: {e}")
+            print(f"[LLM ERROR] gemini: {e}")
             return None
 
         if not raw_sql:
             return None
 
-        # ── Clean response (both providers) ─────────────────
         sql = re.sub(r"```sql|```", "", raw_sql).strip()
         sql = re.sub(r"^(sql|query)[:\s]+", "", sql, flags=re.I).strip()
-
-        # Take only the first statement
         if ";" in sql:
             sql = sql.split(";")[0].strip()
-
-        # Reject unsupported sentinel or empty result
         if not sql or "unsupported" in sql.lower():
             return None
-
         return sql
 
-    def _resolve_clarification(self, q: str) -> str | None:
-        """
-        NEW-7: robust year resolver — always clears pending (no loops).
-        Returns resolved_col string or None.
-        """
-        if not self._pending: return None
+    def _resolve_clarification(self, q: str):
+        """Resolve pending year clarification — always clears pending."""
+        if not self._pending:
+            return None
         orig = self._pending.get("original_q","")
-        self._pending = None   # always clear — never loop
+        self._pending = None
 
         ql = q.lower().strip()
 
-        # Check 5-year signals FIRST — must not be overridden by bare "2025" substring
-        if re.search(r'(5[\s\-]?year|5y|full\s*5|five[\s\-]year|all year|whole|full plan|poora|panch|2025.2030|2025\u20132030)', ql):
+        # 5-year signals FIRST
+        if re.search(r'(5[\s\-]?year|5y|full\s*5|five[\s\-]year|all year|whole|full plan|poora|panch|2025[\s\-–—]2030)', ql):
             return f"__RESOLVED__total_5y_k_eur__{orig}"
 
-        # Scan FY_COL_MAP — take LAST match so more specific tokens win
         resolved_col = None
         for token, col in FY_COL_MAP.items():
             if token in ql:
@@ -1510,7 +1610,6 @@ SQL:"""
         if resolved_col:
             return f"__RESOLVED__{resolved_col}__{orig}"
 
-        # Broad patterns as final fallback
         if re.search(r'(fy\s*2025|2025/26|2526|\bcurrent\b|this year)', ql):
             return f"__RESOLVED__budget_fy_2526__{orig}"
         if re.search(r'(fy\s*2026|2026/27|2627|\bnext\b|next year)', ql):
@@ -1550,14 +1649,19 @@ SQL:"""
     def ask(self, question: str) -> dict:
         self._last_intent = {}
         try:
-            # NEW-1: detect language per message — not locked to session
             lang  = detect_lang(question)
             q_raw = question.lower().strip()
 
-            # SECURITY: block DML keywords immediately — before any intent processing
-            # This prevents "Delete all X" from triggering clarification flows
+            # Block DML keywords immediately
             if re.search(r'\b(delete|drop|truncate|insert|update|alter|create)\b', q_raw):
                 res = self._result(R("unsafe", lang), None, None, False)
+                self._mem(question, res["answer"])
+                return res
+
+            # Greeting (Fix #3) — before any pending clarification resolution
+            if is_greeting(question) and not self._pending:
+                self._last_intent = {"intent_type": "greeting"}
+                res = self._result(R("greeting", lang), None, None, False)
                 self._mem(question, res["answer"])
                 return res
 
@@ -1567,12 +1671,11 @@ SQL:"""
                 parts        = resolved.split("__", 3)
                 resolved_col = parts[2]
                 original_q   = parts[3] if len(parts) > 3 else question
-                # Re-process original question with year now known
                 question = original_q
                 q_raw    = original_q.lower().strip()
                 q_norm   = normalise(q_raw)
                 intent   = parse_intent(q_norm, q_raw)
-                intent["fy_col"] = resolved_col   # inject resolved year
+                intent["fy_col"] = resolved_col
                 self._last_intent = intent
                 built = build_sql(intent, q_norm, q_raw)
                 if built:
@@ -1582,7 +1685,7 @@ SQL:"""
                     if sql: sql = sanitise(sql)
                     params = {}
                 if not is_safe(sql):
-                    res = self._result(R("unsafe",lang), sql, None, False)
+                    res = self._result(R("cant_answer",lang), sql, None, False)
                     self._mem(question, res["answer"])
                     return res
                 df = self._run_sql(sql, params)
@@ -1598,9 +1701,6 @@ SQL:"""
                 res    = self._result(answer, sql, df, False)
                 self._mem(question, answer)
                 return res
-            elif resolved:
-                question = resolved
-                q_raw    = resolved.lower()
 
             q_norm = normalise(q_raw)
 
@@ -1615,7 +1715,7 @@ SQL:"""
                 self._mem(question, res["answer"])
                 return res
 
-            # Actuals check BEFORE safety
+            # Actuals check
             if re.search(r'\b(actual|spent|disbursed|utilized)\b', q_norm) and \
                re.search(r'\b(invest|budget|spend|amount|exceed)\b', q_norm):
                 res = self._result(R("no_actuals",lang), None, None, True)
@@ -1644,7 +1744,7 @@ SQL:"""
             intent = parse_intent(q_norm, q_raw)
             self._last_intent = intent
 
-            # NEW-2: Financial intent without year → ask which year
+            # Financial intent without year → ask which year
             if needs_year(intent):
                 self._pending = {"original_q": question}
                 res = self._result(R("clarify_year",lang), None, None, True)
@@ -1656,11 +1756,18 @@ SQL:"""
             if built:
                 sql, params = built
             else:
+                # Rule-based gave up → try Gemini
                 sql = self._llm_sql(question, lang)
                 if sql: sql = sanitise(sql)
                 params = {}
 
-            # Safety
+            # Safety — if nothing resolved, give a helpful message, not "unsafe"
+            if not sql:
+                res = self._result(R("cant_answer",lang), None, None, False)
+                self._mem(question, res["answer"])
+                self.cache[ck] = res
+                return res
+
             if not is_safe(sql):
                 res = self._result(R("unsafe",lang), sql, None, False)
                 self._mem(question, res["answer"])
@@ -1689,4 +1796,5 @@ SQL:"""
 
         except Exception as e:
             lang = detect_lang(question) if question else "english"
+            print(f"[ASK ERROR] {e}")
             return self._result(R("internal_error",lang), None, None, False, str(e))
