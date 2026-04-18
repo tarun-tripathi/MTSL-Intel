@@ -1338,8 +1338,6 @@ def to_csv_bytes(df: pd.DataFrame) -> bytes | None:
 
 class InvestmentChatbot:
 
-    class InvestmentChatbot:
-
     def __init__(self, engine):
         self.engine           = engine
         self.cache            = {}
