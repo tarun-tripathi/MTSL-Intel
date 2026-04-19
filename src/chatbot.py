@@ -14,9 +14,13 @@ Changes in v7:
 """
 
 import hashlib
+import logging
 import os
 import re
 from collections import deque
+
+# Use logging — Streamlit Cloud captures logging better than print()
+_log = logging.getLogger(__name__)
 
 import pandas as pd
 import requests
@@ -1493,18 +1497,26 @@ class InvestmentChatbot:
         self._pending    = None
 
         # Gemini setup
-        self.gemini_model = None
-        self.llm_provider = "none"
+        self.gemini_model   = None
+        self.llm_provider   = "none"
+        self.llm_init_error = None   # Surfaced in sidebar for debugging
 
         gemini_key = self._get_gemini_key()
-        if _GEMINI_SDK_AVAILABLE and gemini_key:
+        if not _GEMINI_SDK_AVAILABLE:
+            self.llm_init_error = "SDK import failed (google.generativeai)"
+            _log.error("[LLM] %s", self.llm_init_error)
+        elif not gemini_key:
+            self.llm_init_error = "GEMINI_API_KEY not found in secrets or env"
+            _log.error("[LLM] %s", self.llm_init_error)
+        else:
             try:
                 genai.configure(api_key=gemini_key)
                 self.gemini_model = genai.GenerativeModel("gemini-1.5-flash")
                 self.llm_provider = "gemini"
-                print("[LLM] Gemini 1.5 Flash initialized")
+                _log.info("[LLM] Gemini 1.5 Flash initialized (key len=%d)", len(gemini_key))
             except Exception as e:
-                print(f"[LLM] Gemini setup failed: {e}")
+                self.llm_init_error = f"init exception: {e!r}"
+                _log.exception("[LLM] Gemini setup failed")
 
         # Backward-compat flag used by app.py
         self.ollama_available = (self.llm_provider != "none")
@@ -1528,14 +1540,17 @@ class InvestmentChatbot:
                 res = conn.execute(text(sql), params or {})
                 return pd.DataFrame(res.fetchall(), columns=res.keys())
         except Exception as e:
-            print(f"[SQL ERROR] {e}\n{sql}")
+            _log.error("[SQL ERROR] %s\n%s", e, sql)
             return None
 
     def _llm_sql(self, question: str, lang: str = "english"):
         """Generate SQL via Gemini for queries the rule-based builder missed."""
         if self.llm_provider == "none" or not self.gemini_model:
+            _log.warning("[LLM] _llm_sql skipped — provider=%s, err=%s",
+                         self.llm_provider, self.llm_init_error)
             return None
 
+        _log.info("[LLM] _llm_sql called | q=%s", question[:120])
         q_norm = normalise(question.lower().strip())
 
         recent = list(self._memory)[-6:]
@@ -1574,9 +1589,9 @@ SQL:"""
                 },
             )
             raw_sql = (response.text or "").strip()
-            print(f"[LLM] Gemini returned SQL (len={len(raw_sql)})")
+            _log.info("[LLM] Gemini returned (len=%d): %s", len(raw_sql), raw_sql[:200])
         except Exception as e:
-            print(f"[LLM ERROR] gemini: {e}")
+            _log.exception("[LLM ERROR] gemini call failed")
             return None
 
         if not raw_sql:
@@ -1796,5 +1811,5 @@ SQL:"""
 
         except Exception as e:
             lang = detect_lang(question) if question else "english"
-            print(f"[ASK ERROR] {e}")
+            _log.exception("[ASK ERROR]")
             return self._result(R("internal_error",lang), None, None, False, str(e))
