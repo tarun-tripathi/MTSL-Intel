@@ -3,7 +3,7 @@ Motherson Investment Intelligence — Chatbot v7 (cloud-only, Gemini)
 
 Changes in v7:
   - Removed Ollama support (cloud deployment only)
-  - Added Gemini 1.5 Flash integration
+  - Added Gemini 2.5 Flash integration
   - Fixed greeting handler (hi/hello/namaste/hallo)
   - Fixed range queries ("FY X to FY Y", "2025-2030")
   - Fixed "general" intent falsely asking for FY
@@ -1511,9 +1511,9 @@ class InvestmentChatbot:
         else:
             try:
                 genai.configure(api_key=gemini_key)
-                self.gemini_model = genai.GenerativeModel("gemini-1.5-flash")
+                self.gemini_model = genai.GenerativeModel("gemini-2.5-flash")
                 self.llm_provider = "gemini"
-                _log.info("[LLM] Gemini 1.5 Flash initialized (key len=%d)", len(gemini_key))
+                _log.info("[LLM] Gemini 2.5 Flash initialized (key len=%d)", len(gemini_key))
             except Exception as e:
                 self.llm_init_error = f"init exception: {e!r}"
                 _log.exception("[LLM] Gemini setup failed")
