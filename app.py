@@ -245,7 +245,7 @@ with st.sidebar:
 
     st.markdown("**LLM**")
     if is_cloud_env():
-        st.caption("Google Gemini 1.5 Flash")
+        st.caption("Google Gemini 2.5 Flash")
     else:
         try:
             import requests
