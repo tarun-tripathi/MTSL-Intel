@@ -312,7 +312,8 @@ if page == "Dashboard":
     st.subheader("Key metrics")
     c1, c2, c3, c4, c5 = st.columns(5)
     with c1:
-        metric_card("Total investments", f"{len(df_inv):,}")
+        cfmt = st.session_state.get("currency_fmt", "us")
+        metric_card("Total investments", format_record_count(len(df_inv), cfmt))
     with c2:
         total = df_bud["total_5y_k_eur"].sum() if "total_5y_k_eur" in df_bud.columns else 0
         cfmt  = st.session_state.get("currency_fmt", "us")
