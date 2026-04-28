@@ -118,6 +118,22 @@ def format_currency(value_k, currency_fmt: str = "us") -> str:
     return s
 
 
+def format_chart_label(value_k, currency_fmt: str = "us") -> str:
+    """Locale-aware version of format_large_number — used for Plotly chart labels."""
+    s = format_large_number(value_k)
+    if currency_fmt == "eu":
+        s = s.replace(",", "§").replace(".", ",").replace("§", ".")
+    return s
+
+
+def format_record_count(n: int, currency_fmt: str = "us") -> str:
+    """Locale-aware integer formatter (e.g. 5,116 vs 5.116)."""
+    s = f"{n:,}"
+    if currency_fmt == "eu":
+        s = s.replace(",", ".")
+    return s
+
+
 # ── Excel export ───────────────────────────────────────────────
 
 def to_excel_bytes(df: pd.DataFrame, sheet_title: str = "Results") -> bytes:
@@ -236,7 +252,8 @@ with st.sidebar:
         stats  = get_db_stats(engine)
         st.markdown("**Database**")
         st.caption("Connected — PostgreSQL")
-        st.caption(f"{stats.get('investments', 0):,} records")
+        _cfmt_db = st.session_state.get("currency_fmt", "us")
+        st.caption(f"{format_record_count(stats.get('investments', 0), _cfmt_db)} records")
     except RuntimeError as e:
         st.markdown("**Database**")
         st.error(str(e))
@@ -319,9 +336,10 @@ if page == "Dashboard":
             co = df.groupby("company")["budget_fy_2526"].sum().reset_index()
             co.columns = ["Company", "Budget (k€)"]
             co = co.sort_values("Budget (k€)", ascending=False)
+            cfmt = st.session_state.get("currency_fmt", "us")
             fig = px.bar(
                 co, x="Company", y="Budget (k€)",
-                text=co["Budget (k€)"].apply(format_large_number),
+                text=co["Budget (k€)"].apply(lambda v: format_chart_label(v, cfmt)),
                 color_discrete_sequence=["#dc2626"],
             )
             fig.update_layout(
@@ -354,9 +372,10 @@ if page == "Dashboard":
             reg = df.groupby("region")["budget_fy_2526"].sum().reset_index()
             reg.columns = ["Region", "Budget (k€)"]
             reg = reg.sort_values("Budget (k€)", ascending=True)
+            cfmt = st.session_state.get("currency_fmt", "us")
             fig = px.bar(
                 reg, x="Budget (k€)", y="Region", orientation="h",
-                text=reg["Budget (k€)"].apply(format_large_number),
+                text=reg["Budget (k€)"].apply(lambda v: format_chart_label(v, cfmt)),
                 color_discrete_sequence=["#1d4ed8"],
             )
             fig.update_layout(
@@ -383,10 +402,11 @@ if page == "Dashboard":
         ]
         if trend:
             tdf = pd.DataFrame(trend)
+            cfmt = st.session_state.get("currency_fmt", "us")
             fig = px.line(
                 tdf, x="Year", y="Budget (k€)", markers=True,
                 color_discrete_sequence=["#dc2626"],
-                text=tdf["Budget (k€)"].apply(format_large_number),
+                text=tdf["Budget (k€)"].apply(lambda v: format_chart_label(v, cfmt)),
             )
             fig.update_traces(textposition="top center")
             fig.update_layout(plot_bgcolor="white", height=CHART_HEIGHT)
