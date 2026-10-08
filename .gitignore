@@ -1,0 +1,10 @@
+.env
+.streamlit/secrets.toml
+data/raw/
+data/processed/
+data/logs/
+__pycache__/
+*.pyc
+.venv/
+.DS_Store
+.sfdx/
