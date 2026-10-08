@@ -4,7 +4,13 @@ A Streamlit app and chatbot for exploring Motherson's five-year capital investme
 
 **Live demo:** https://mtsl-intel.streamlit.app/
 
-<!-- Add 1-2 screenshots here (dashboard + chatbot): ![Dashboard](docs/dashboard.png) -->
+**Dashboard**
+
+![Dashboard](docs/dashboard.png)
+
+**Chatbot**
+
+![Chatbot](docs/chatbot.png)
 
 ## What it does
 
@@ -18,9 +24,9 @@ A Streamlit app and chatbot for exploring Motherson's five-year capital investme
 
 | Item | Value |
 |---|---|
-| Records processed | 5,170 |
+| Records loaded | 5,116 (5,170 processed, 54 quarantined) |
 | Plants / regions | 62 / 7 |
-| 5-year plan total | about €2.13B |
+| 5-year plan total | about €2.10B (after validation) |
 | Cleaning rules | 8 |
 | Validation rules | 11 (99% of records passed; 54 quarantined) |
 
