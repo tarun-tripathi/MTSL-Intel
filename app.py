@@ -261,16 +261,7 @@ with st.sidebar:
     st.divider()
 
     st.markdown("**LLM**")
-    if is_cloud_env():
-        st.caption("Google Gemini 2.5 Flash")
-    else:
-        try:
-            import requests
-            requests.get("http://localhost:11434", timeout=2)
-            st.caption("Ollama running — Mistral")
-        except Exception:
-            st.caption("Ollama not running")
-            st.caption("Start with: `ollama serve`")
+    st.caption("Google Gemini 2.5 Flash")
 
     st.divider()
     st.markdown("**Display**")
@@ -513,7 +504,7 @@ elif page == "Data Explorer":
 
 elif page == "Validation Report":
     st.title("Validation Report")
-    st.caption("Data quality check — 12 business rules")
+    st.caption("Data quality check — 11 business rules")
 
     report_df = load_validation_report()
 
@@ -582,9 +573,9 @@ elif page == "Chatbot":
  
     chatbot = st.session_state.chatbot
  
-    # Show warning only on local when Ollama is down. On cloud we use Gemini.
-    if not is_cloud_env() and not chatbot.ollama_available:
-        st.warning("Ollama is not running. Start it with: `ollama serve`")
+    # Warn if the Gemini key is missing
+    if not chatbot.ollama_available:
+        st.warning("Gemini is not configured. Add GEMINI_API_KEY to Streamlit secrets or your .env file.")
  
     # ── Process suggestion click ──────────────────────────
     if "pending" in st.session_state:
